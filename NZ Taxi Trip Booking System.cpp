@@ -165,7 +165,61 @@ void driverLogIn()
 // Driver Registration Function:
 void driverRegistration()
 {
-    cout << "\n[Insert Driver Registration Here]" << endl;
+    // Road Header Image:
+    cout << "___________________________________________________" << endl << endl;
+    cout << "---------------------------------------------------" << endl;
+    cout << "___________________________________________________" << endl << endl;
+
+    cout << "Eligibility Test" << endl << endl;
+
+    // Local Variables:
+    string licenceStatus;
+    string *licenceStatusPtr = &licenceStatus;
+    int drivingExperience;
+    int *drivingExperiencePtr = &drivingExperience;
+    int vehicleAge;
+    int *vehicleAgePtr = &vehicleAge;
+
+    // First check if the user is eligible to become a driver:
+    // Check the licence status:
+    cout << "What is the status of your licence? Please type: Learners, Restricted, or Full." << endl;
+    cout << "Licence: ";
+    cin >> *licenceStatusPtr;
+    if (*licenceStatusPtr == "Full")
+    {
+        // Check the user's number of years of driving experience:
+        cout << "\nHow many years of driving experience do you have?" << endl;
+        cout << "Years of experience: ";
+        cin >> *drivingExperiencePtr;
+        if (*drivingExperiencePtr >= 2)
+        {
+            // Check how old the taxi's model is:
+            cout << "\nHow old is your vehicle (in years)?" << endl;
+            cout << "Vehicle's age: ";
+            cin >> *vehicleAgePtr;
+            if (*vehicleAgePtr <= 10)
+            {
+                //
+            }
+            else
+            {
+                cout << "Sorry! You are not eligible to drive for us at this time," << endl;
+                cout << "but you are welcome to register with a vehicle that is ten or less years old!" << endl << endl;
+            }
+        }
+        else
+        {
+            cout << "Sorry! You are not eligible to drive for us at this time," << endl;
+            cout << "but you are welcome to register once you have been driving for at least 2 years!" << endl << endl;
+        }
+    }
+    else
+    {
+        cout << "Sorry! You are not eligible to drive for us at this time," << endl;
+        cout << "but you are welcome to register once you have your full licence!" << endl << endl;
+        // Back to intro screen:
+        introFunction();
+    }
 }
 
 // Admin LogIn Function:
