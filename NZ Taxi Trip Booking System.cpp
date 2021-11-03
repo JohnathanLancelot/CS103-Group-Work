@@ -3,8 +3,10 @@
  * Project Name: NZ Taxi Trip Booking System
  */
 
+#define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <cmath>
+#include <ctime>
 #include <string>
 #include <fstream>
 using namespace std;
@@ -12,20 +14,40 @@ using namespace std;
 // Global Variables:
 string roleChoice;
 string *roleChoicePtr = &roleChoice;
-fstream driverData;
 
 // Global Variables For Driver Registration / LogIn:
+fstream driverData;
 string licenceStatus;
 string *licenceStatusPtr = &licenceStatus;
+string driverEmailLogIn;
+string *driverEmailLogInPtr = &driverEmailLogIn;
+string driverPassword;
+string *driverPasswordPtr = &driverPassword;
+string driverLine;
+string *driverLinePtr = &driverLine;
+string driverEmailNotFound;
+string *driverEmailNotFoundPtr = &driverEmailNotFound;
 int drivingExperience;
 int *drivingExperiencePtr = &drivingExperience;
 int vehicleAge;
 int *vehicleAgePtr = &vehicleAge;
 int driverAge;
 int *driverAgePtr = &driverAge;
+int driverLinesCounter = 1;
+int *driverLinesCounterPtr = &driverLinesCounter;
+int driverEmailLine;
+int *driverEmailLinePtr = &driverEmailLine;
+int pLongevity;
+int *pLongevityPtr = &pLongevity;
+int pYearToCheck;
+int *pYearToCheckPtr = &pYearToCheck;
+int driverLogInAttempts = 0;
+int *driverLogInAttemptsPtr = &driverLogInAttempts;
+bool pLeap;
+bool *pLeapPtr = &pLeap;
 
 // Structures:
-struct driver
+struct Driver
 {
     // General Information:
     string fullName;
@@ -54,8 +76,8 @@ struct driver
     string passwordConfirmed;
 
     // Endorsement Information:
-    int endorsementNumber = 0;
-    string endorsementExpiry;
+    string endorsementNumber = "P";
+    int endorsementExpiry[3] = {0,0,0};
 };
 
 // Functions:
@@ -65,6 +87,7 @@ void customerLogIn();
 void customerRegistration();
 void driverLogIn();
 void driverRegistration();
+void driverScreen();
 void adminLogIn();
 
 int main()
@@ -205,7 +228,119 @@ void customerRegistration()
 // Driver LogIn Function:
 void driverLogIn()
 {
-    cout << "\n[Insert Driver LogIn Here]" << endl;
+    // Header Section:
+    cout << "___________________________________________________" << endl << endl;
+    cout << "---------------------------------------------------" << endl;
+    cout << "___________________________________________________" << endl << endl;
+
+    cout << "Driver LogIn" << endl << endl;
+
+    // Fix the missed inputs issue:
+    cin.ignore();
+
+    // Obtain the login details:
+    cout << "Please enter your email address: ";
+    getline(cin, *driverEmailLogInPtr);
+    cout << "Please enter your password: ";
+    getline(cin, *driverPasswordPtr);
+
+    // Open and search driverData.txt for these details:
+    driverData.open("driverData.txt", ios::in);
+    // Search for the email address:
+    while (getline(driverData, driverLine))
+    {
+        if (driverLine == *driverEmailLogInPtr)
+        {
+            // If you find the email address, record how far down the data file it is:
+            *driverEmailLinePtr = driverLinesCounter;
+        }
+        // The confirmed password is located 1 line down from the email address:
+        else if (*driverEmailLinePtr != 0 && driverLinesCounter == (*driverEmailLinePtr + 1))
+        {
+            // Check if the password entered is incorrect:
+            while (*driverPasswordPtr != driverLine)
+            {
+                driverLogInAttemptsPtr++;
+                // Check if the user has used up all their attempts:
+                if (*driverLogInAttemptsPtr > 3)
+                {
+                    // Reset login attempts and make the user wait 3 minutes:
+                    *driverLogInAttemptsPtr = 0;
+                    cout << "\nSorry. Incorrect password! Please try again after 1 minute." << endl;
+
+                    // Get the time:
+                    time_t now = time(0);
+                    struct  tm* dt = localtime(&now);
+
+                    // Create some local variables to manage the time:
+                    int startingSecond = dt->tm_sec;
+                    int endingSecond = startingSecond;
+                    int currentSecond;
+                    int previousSecond = NULL;
+
+                    // Create a timer (will end after one minute):
+                    cout << "\nWaiting ";
+                    while (startingSecond != endingSecond)
+                    {
+                        startingSecond = dt->tm_sec;
+                        currentSecond = startingSecond;
+                        // Every time the second updates, print an "o":
+                        if (currentSecond != previousSecond)
+                        {
+                            cout << "o ";
+                        }
+                        previousSecond = currentSecond;
+                    }
+
+                    // After the timer is done, let them try again:
+                    cout << "Please enter your password: ";
+                    getline(cin, *driverPasswordPtr);
+                }
+                /* If the password entered is incorrect, tell the user this,
+                 * as well as how many attempts they have left to make:
+                 */
+                cout << "\nSorry. Incorrect password! Please try again." << endl;
+                cout << "Please enter your password: ";
+                getline(cin, *driverPasswordPtr);
+            }
+            /* Once the password is correct...
+             * Reset the lines being read to zero and close the file:
+             */
+            driverLinesCounter = 0;
+            driverData.close();
+
+            // Tell the user they have successfully logged in, and take them to the Driver Screen:
+            cout << "\nLog in successful!" << endl;
+            driverScreen();
+        }
+        // Count the lines being read:
+        driverLinesCounter++;
+    }
+    // If, after searching through the whole file, the email address entered is not found:
+    if (*driverEmailLinePtr == NULL)
+    {
+        driverData.close();
+        cout << "\nSorry. That email address was not found. Do you want to register (type: register)" << endl;
+        cout << "or return to the home screen (type: home)? ";
+        cin >> *driverEmailNotFoundPtr;
+
+        // Make sure the input is valid:
+        while (*driverEmailNotFoundPtr != "register" && *driverEmailNotFoundPtr != "home" && *driverEmailNotFoundPtr != "Register" && *driverEmailNotFoundPtr != "Home")
+        {
+            cout << "\nSorry. Invalid input. Please type register or home: ";
+            cin >> *driverEmailNotFoundPtr;
+        }
+
+        // Act on valid input:
+        if (*driverEmailNotFoundPtr == "register" || *driverEmailNotFoundPtr == "Register")
+        {
+            driverRegistration();
+        }
+        else if (*driverEmailNotFoundPtr == "home" || *driverEmailNotFoundPtr == "Home")
+        {
+            introFunction();
+        }
+    }
 }
 
 // Driver Registration Function:
@@ -219,7 +354,7 @@ void driverRegistration()
     cout << "Eligibility Test" << endl << endl;
 
     // Temporary Structure:
-    driver newDriver;
+    Driver newDriver;
 
     // First check if the user is eligible to become a driver:
     // Check the licence status:
@@ -333,12 +468,84 @@ void driverRegistration()
                     cout << "Endorsement" << endl << endl;
 
                     // Assign an endorsement number:
-                    newDriver.endorsementNumber = 12789;
                     cout << "Your Endorsement Number: " << newDriver.endorsementNumber << endl;
 
-                    // Generate an endorsement expiry date:
-                    newDriver.endorsementExpiry = "31/10/2023";
-                    cout << "Your Endorsement Expiry Date: " << newDriver.endorsementExpiry << endl << endl;
+                    // Ask if the user if they want a 1 year P endorsement or a 5 year one:
+                    cout << "\nDo you want this endorsement to last 1 year or 5 years?" << endl;
+                    cout << "Longevity of P Endorsement: ";
+                    cin >> *pLongevityPtr;
+
+                    // Make sure P Logevity is 1 or 5:
+                    while (*pLongevityPtr != 1 && *pLongevityPtr != 5)
+                    {
+                        cout << "\nSorry. You have entered an invalid option. Please enter 1 or 5." << endl;
+                        cout << "Longevity of P Endorsement: ";
+                        cin >> *pLongevityPtr;
+                    }
+
+                    /* Generate an endorsement expiry date...
+                     * First by checking the current date:
+                     */
+                    time_t now = time(0);
+                    struct  tm* dt = localtime(&now);
+
+                    /* Check if the current month is february, 
+                     * and if so, check if next year or the year in 5 years will be a leap year :
+                     */
+                    // Check if we're looking at next year, or the year in 5 years' time:
+                    if (*pLongevityPtr == 1)
+                    {
+                        *pYearToCheckPtr = (dt->tm_year + 1900) + 1;
+                    }
+                    else if (*pLongevityPtr == 5)
+                    {
+                        *pYearToCheckPtr = (dt->tm_year + 1900) + 5;
+                    }
+                    // Check if the year is divisible by 4:
+                    if (*pYearToCheckPtr % 4 == 0)
+                    {
+                        // Check if the year is divisible by 100:
+                        if (*pYearToCheckPtr % 100 == 0)
+                        {
+                            // Check if the year is divisible by 400:
+                            if (*pYearToCheckPtr % 400 == 0)
+                            {
+                                *pLeapPtr = true;
+                            }
+                            else
+                            {
+                                *pLeapPtr = false;
+                            }
+                        }
+                        else
+                        {
+                            *pLeapPtr = true;
+                        }
+                    }
+                    else
+                    {
+                        *pLeapPtr = false;
+                    }
+
+                    /* Determine what the expiry day should be.
+                     * If it is currently the 29th of February, and the expiry year is not a leap year,
+                     * make the expiry day the first day of the following month. 
+                     */
+                    if (*pLeapPtr == false && (dt->tm_mon + 1) == 2 && dt->tm_mday == 29)
+                    {
+                        newDriver.endorsementExpiry[0] = 1; // 1st
+                        newDriver.endorsementExpiry[1] = 3; // March
+                    }
+                    // Otherwise leave the day and month of expiry the same as the current day and month:
+                    else
+                    {
+                        newDriver.endorsementExpiry[0] = dt->tm_mday;
+                        newDriver.endorsementExpiry[1] = dt->tm_mon + 1;
+                    }
+                    newDriver.endorsementExpiry[2] = *pYearToCheckPtr;
+
+                    // Display the expiry date:
+                    cout << "\nYour Endorsement Expiry Date (dd/mm/yyyy) is: " << newDriver.endorsementExpiry[0] << "/" << newDriver.endorsementExpiry[1] << "/" << newDriver.endorsementExpiry[2] << endl << endl;
 
                     // Enter details into the driverData.txt file:
                     driverData.open("driverData.txt", ios::out | ios::app);
@@ -359,11 +566,16 @@ void driverRegistration()
                     driverData << newDriver.emailAddress << endl;
                     driverData << newDriver.passwordConfirmed << endl;
                     driverData << newDriver.endorsementNumber << endl;
-                    driverData << newDriver.endorsementExpiry << endl;
+                    driverData << newDriver.endorsementExpiry[0] << endl;
+                    driverData << newDriver.endorsementExpiry[1] << endl;
+                    driverData << newDriver.endorsementExpiry[2] << endl;
                     driverData << "-----End of item-----" << endl;
 
                     // Close the file:
                     driverData.close();
+
+                    // Take the user to the driver screen after registering:
+                    driverScreen();
                 }
                 else
                 {
@@ -396,6 +608,12 @@ void driverRegistration()
         // Back to intro screen:
         introFunction();
     }
+}
+
+// Driver Logged In Screen Function:
+void driverScreen()
+{
+    cout << "\n[Insert Driver Screen Here]" << endl;
 }
 
 // Admin LogIn Function:
