@@ -9,6 +9,8 @@
 #include <ctime>
 #include <string>
 #include <fstream>
+#include <chrono>
+#include <thread>
 using namespace std;
 
 // Global Variables:
@@ -262,38 +264,22 @@ void driverLogIn()
             {
                 driverLogInAttemptsPtr++;
                 // Check if the user has used up all their attempts:
-                if (*driverLogInAttemptsPtr > 3)
+                if (*driverLogInAttemptsPtr >= 3)
                 {
-                    // Reset login attempts and make the user wait 3 minutes:
+                    // Reset login attempts and make the user wait 10 seconds:
                     *driverLogInAttemptsPtr = 0;
-                    cout << "\nSorry. Incorrect password! Please try again after 1 minute." << endl;
+                    cout << "\nSorry. Incorrect password! Please try again after 10 seconds." << endl;
 
-                    // Get the time:
-                    time_t now = time(0);
-                    struct  tm* dt = localtime(&now);
-
-                    // Create some local variables to manage the time:
-                    int startingSecond = dt->tm_sec;
-                    int endingSecond = startingSecond;
-                    int currentSecond;
-                    int previousSecond = NULL;
-
-                    // Create a timer (will end after one minute):
-                    cout << "\nWaiting ";
-                    while (startingSecond != endingSecond)
-                    {
-                        startingSecond = dt->tm_sec;
-                        currentSecond = startingSecond;
-                        // Every time the second updates, print an "o":
-                        if (currentSecond != previousSecond)
-                        {
-                            cout << "o ";
-                        }
-                        previousSecond = currentSecond;
-                    }
+                    // Create a timer for 1 minute:
+                    using namespace std::chrono_literals;
+                    std::cout << "Waiting...\n" << std::flush;
+                    auto start = std::chrono::high_resolution_clock::now();
+                    std::this_thread::sleep_for(10000ms);
+                    auto end = std::chrono::high_resolution_clock::now();
+                    std::chrono::duration<double, std::milli> elapsed = end - start;
 
                     // After the timer is done, let them try again:
-                    cout << "Please enter your password: ";
+                    cout << "\n\nPlease enter your password: ";
                     getline(cin, *driverPasswordPtr);
                 }
                 /* If the password entered is incorrect, tell the user this,
