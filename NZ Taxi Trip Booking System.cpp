@@ -44,9 +44,24 @@ int *pLongevityPtr = &pLongevity;
 int pYearToCheck;
 int *pYearToCheckPtr = &pYearToCheck;
 int driverLogInAttempts = 0;
-int *driverLogInAttemptsPtr = &driverLogInAttempts;
 bool pLeap;
 bool *pLeapPtr = &pLeap;
+
+// Global Variables For Admin LogIn:
+fstream adminData;
+string adminEmailAddress = "admin@nztaxitrip.com";
+string *adminEmailAddressPtr = &adminEmailAddress;
+string adminPassword = "toot-for-taxi";
+string *adminPasswordPtr = &adminPassword;
+string adminLine;
+string *adminLinePtr = &adminLine;
+string adminEmailNotFound;
+string *adminEmailNotFoundPtr = &adminEmailNotFound;
+int adminEmailLine;
+int *adminEmailLinePtr = &adminEmailLine;
+int adminLinesCounter = 1;
+int *adminLinesCounterPtr = &adminLinesCounter;
+int adminLogInAttempts = 0;
 
 // Structures:
 struct Driver
@@ -91,9 +106,25 @@ void driverLogIn();
 void driverRegistration();
 void driverScreen();
 void adminLogIn();
+void adminScreen();
 
 int main()
 {
+    /* Create the adminData.txt file if it isn't already there, and make sure we overwrite the contents
+     * Rather than adding duplicates of the admin information each time:
+     * Admin Email: admin@nztaxitrip.com
+     * Admin Password: toot-for-taxi
+     */
+    adminData.open("adminData.txt", ios::out);
+
+    // Write to the file:
+    adminData << *adminEmailAddressPtr << endl;
+    adminData << *adminPasswordPtr << endl;
+    adminData << "-----End of item-----" << endl;
+
+    // Close the file:
+    adminData.close();
+
     // Start the program with the intro:
     introFunction();
 }
@@ -257,17 +288,17 @@ void driverLogIn()
             *driverEmailLinePtr = driverLinesCounter;
         }
         // The confirmed password is located 1 line down from the email address:
-        else if (*driverEmailLinePtr != 0 && driverLinesCounter == (*driverEmailLinePtr + 1))
+        else if (*driverEmailLinePtr != NULL && driverLinesCounter == (*driverEmailLinePtr + 1))
         {
             // Check if the password entered is incorrect:
             while (*driverPasswordPtr != driverLine)
             {
-                driverLogInAttemptsPtr++;
+                driverLogInAttempts++;
                 // Check if the user has used up all their attempts:
-                if (*driverLogInAttemptsPtr >= 3)
+                if (driverLogInAttempts >= 3)
                 {
                     // Reset login attempts and make the user wait 10 seconds:
-                    *driverLogInAttemptsPtr = 0;
+                    driverLogInAttempts = 0;
                     cout << "\nSorry. Incorrect password! Please try again after 10 seconds." << endl;
 
                     // Create a timer for 1 minute:
@@ -281,6 +312,7 @@ void driverLogIn()
                     // After the timer is done, let them try again:
                     cout << "\n\nPlease enter your password: ";
                     getline(cin, *driverPasswordPtr);
+                    driverLogInAttempts++;
                 }
                 /* If the password entered is incorrect, tell the user this,
                  * as well as how many attempts they have left to make:
@@ -605,7 +637,104 @@ void driverScreen()
 // Admin LogIn Function:
 void adminLogIn()
 {
-    cout << "\n[Insert Admin LogIn Here]" << endl;
+    // Header Section:
+    cout << "___________________________________________________" << endl << endl;
+    cout << "---------------------------------------------------" << endl;
+    cout << "___________________________________________________" << endl << endl;
+
+    cout << "Admin LogIn" << endl << endl;
+
+    // Fix the missed inputs issue:
+    cin.ignore();
+
+    // Obtain the login details:
+    cout << "Please enter your email address: ";
+    getline(cin, *adminEmailAddressPtr);
+    cout << "Please enter your password: ";
+    getline(cin, *adminPasswordPtr);
+
+    // Open and search adminData.txt for these details:
+    adminData.open("adminData.txt", ios::in);
+    // Search for the email address:
+    while (getline(adminData, adminLine))
+    {
+        if (adminLine == *adminEmailAddressPtr)
+        {
+            // If you find the email address, record how far down the data file it is:
+            *adminEmailLinePtr = adminLinesCounter;
+        }
+        // The confirmed password is located 1 line down from the email address:
+        else if (*adminEmailLinePtr != NULL && adminLinesCounter == (*adminEmailLinePtr + 1))
+        {
+            // Check if the password entered is incorrect:
+            while (*adminPasswordPtr != adminLine)
+            {
+                adminLogInAttempts++;
+                // Check if the user has used up all their attempts:
+                if (adminLogInAttempts >= 3)
+                {
+                    // Reset login attempts and make the user wait 10 seconds:
+                    adminLogInAttempts = 0;
+                    cout << "\nSorry. Incorrect password! Please try again after 10 seconds." << endl;
+
+                    // Create a timer for 1 minute:
+                    using namespace std::chrono_literals;
+                    std::cout << "Waiting...\n" << std::flush;
+                    auto start = std::chrono::high_resolution_clock::now();
+                    std::this_thread::sleep_for(10000ms);
+                    auto end = std::chrono::high_resolution_clock::now();
+                    std::chrono::duration<double, std::milli> elapsed = end - start;
+
+                    // After the timer is done, let them try again:
+                    cout << "\n\nPlease enter your password: ";
+                    getline(cin, *adminPasswordPtr);
+                    adminLogInAttempts++;
+                }
+                /* If the password entered is incorrect, tell the user this,
+                 * as well as how many attempts they have left to make:
+                 */
+                cout << "\nSorry. Incorrect password! Please try again." << endl;
+                cout << "Please enter your password: ";
+                getline(cin, *adminPasswordPtr);
+            }
+            /* Once the password is correct...
+             * Reset the lines being read to zero and close the file:
+             */
+            adminLinesCounter = 0;
+            adminData.close();
+
+            // Tell the user they have successfully logged in, and take them to the Admin Screen:
+            cout << "\nLog in successful!" << endl;
+            adminLogInAttempts = 0;
+            adminScreen();
+        }
+        // Count the lines being read:
+        adminLinesCounter++;
+    }
+    // If, after searching through the whole file, the email address entered is not found:
+    if (*adminEmailLinePtr == NULL)
+    {
+        adminData.close();
+        cout << "\nSorry. That email address was not found." << endl;
+        cout << "Do you want to return to the home screen(type: home)? ";
+        cin >> *adminEmailNotFoundPtr;
+
+        // Make sure the input is valid:
+        while (*adminEmailNotFoundPtr != "home" && *adminEmailNotFoundPtr != "Home")
+        {
+            cout << "\nSorry. Invalid input. Please type 'home' to return home: ";
+            cin >> *adminEmailNotFoundPtr;
+        }
+
+        // Act on valid input:
+        introFunction();
+    }
+}
+
+// Admin Logged In Screen Function:
+void adminScreen()
+{
+    cout << "\n[Insert Admin Screen Here]" << endl;
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
