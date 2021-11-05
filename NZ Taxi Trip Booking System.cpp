@@ -48,6 +48,19 @@ int driverLogInAttempts = 0;
 bool pLeap;
 bool *pLeapPtr = &pLeap;
 
+// Global Variables For Driver Screen:
+fstream driverActivityData;
+string driverActivityLine;
+string *driverActivityLinePtr = &driverActivityLine;
+int driverActivityLinesCounter = 0;
+int *driverActivityLinesCounterPtr = &driverActivityLinesCounter;
+bool dateValidation1;
+bool *dateValidation1Ptr = &dateValidation1;
+bool dateValidation2;
+bool *dateValidation2Ptr = &dateValidation2;
+bool dateValidation3;
+bool *dateValidation3Ptr = &dateValidation3;
+
 // Global Variables For Admin LogIn:
 fstream adminData;
 string adminEmailAddress = "admin@nztaxitrip.com";
@@ -139,6 +152,12 @@ int main()
 
     // Close the file:
     adminData.close();
+
+    /* Create a file for the storage of the driver's activities,
+     * if there isn't one already, then close the file:
+     */
+    driverActivityData.open("driverActivityData.txt", ios::out);
+    driverActivityData.close();
 
     // Start the program with the intro:
     introFunction();
@@ -893,6 +912,14 @@ void driverScreen()
         // Retrieve the next node:
         temporaryTrip = temporaryTrip->nextPosition;
     }
+
+    // Report Section:
+    cout << "\n\n|| Daily Report ||" << endl << endl;
+
+    // To print out today's date...
+    time_t now = time(0);
+    struct  tm* dt = localtime(&now);
+    cout << "Today's Date: " << dt->tm_mday << "/" << dt->tm_mon + 1 << "/" << dt->tm_year + 1900 << endl << endl;
 }
 
 // Admin LogIn Function:
