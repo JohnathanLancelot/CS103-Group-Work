@@ -14,6 +14,7 @@
 using namespace std;
 
 // Global Variables:
+fstream tripData;
 string roleChoice;
 string *roleChoicePtr = &roleChoice;
 
@@ -95,6 +96,20 @@ struct Driver
     // Endorsement Information:
     string endorsementNumber = "P";
     int endorsementExpiry[3] = {0,0,0};
+};
+
+// PLACEHOLDER TRIP BOOKING STRUCT:
+struct Trips
+{
+    int tripNumber = 0;
+    string customerName;
+    string customerContactNumber;
+    string startingPlace;
+    string destination;
+    int tripDate[3] = { 0,0,0 };
+    string time;
+    bool available = true;
+    Trips *nextPosition;
 };
 
 // Functions:
@@ -631,7 +646,253 @@ void driverRegistration()
 // Driver Logged In Screen Function:
 void driverScreen()
 {
-    cout << "\n[Insert Driver Screen Here]" << endl;
+    /* Header Section:
+     * Taxi modified from a car ASCII image "MACHO 2020" by The Animator on animasci.com
+     * License will be included with these programming files.
+     */
+    cout << endl << endl;
+    cout << "                  ---" << endl;
+    cout << "                  | |" << endl;
+    cout << "                 ....." << endl;
+    cout << "           , ,''  |    ```...___," << endl;
+    cout << "    .--  ''  P(___|_______/    (|" << endl;
+    cout << "  ( //            |             |" << endl;
+    cout << "  ` ._: ' ' :_____|______: ' ' :/" << endl;
+    cout << "      '  o  '            '  o  '" << endl;
+    cout << "        - -                - - " << endl;
+    cout << "______________________________________________" << endl;
+    cout << "______________________________________________" << endl << endl;
+
+    cout << "\nDriver Screen" << endl << endl;
+
+    // Payment Details Section:
+    cout << "\n|| Payment Details ||" << endl << endl;
+
+    // Open the driverData.txt file to display the payment details:
+    driverData.open("driverData.txt", ios::in);
+
+    // Create some local variables to read this file with:
+    string driverScreenLine;
+    Driver loggedInDriver;
+    int driverScreenLineCounter = 1;
+
+    /* Look for the bank name and the bank account number, 
+     * 2 lines up and 1 line up from the email address respectively:
+     */
+    while (getline(driverData, driverScreenLine))
+    {
+        // Record the bank name:
+        if (driverScreenLineCounter == (*driverEmailLinePtr - 2))
+        {
+            loggedInDriver.bankName = driverScreenLine;
+        }
+        else if (driverScreenLineCounter == (*driverEmailLinePtr - 1))
+        {
+            loggedInDriver.bankAccountNumber = driverScreenLine;
+        }
+        driverScreenLineCounter++;
+    }
+
+    // Close the file and print out the payment details:
+    driverData.close();
+    cout << "Bank Name: " << loggedInDriver.bankName << endl;
+    cout << "Bank Account Number: " << loggedInDriver.bankAccountNumber << endl << endl;
+
+    // Payment Details Section:
+    cout << "\n|| Trips Booked By Customers ||" << endl << endl;
+
+    // Open the tripData.txt file to view the trips booked:
+    tripData.open("tripData.txt", ios::in);
+
+    // Create some local variables to read this file with:
+    string driverScreenTripLine;
+    string dayOfMonth;
+    string monthOfYear;
+    string year;
+    int convertedDayOfMonth;
+    int convertedMonthOfYear;
+    int convertedYear;
+    int driverScreenTripLineCounter = 0;
+    int driverScreenEndMarkerCounter = 0;
+
+    /* Now create a linked list of all the trips in the file,
+     * starting with the 'headNode':
+     */
+    Trips *headTrip = new Trips;
+    while (getline(tripData, driverScreenTripLine))
+    {
+        // Count the number of lines being read:
+        driverScreenTripLineCounter++;
+
+        switch (driverScreenTripLineCounter)
+        {
+        case 1:
+            headTrip->tripNumber = stoi(driverScreenTripLine);
+            break;
+        case 2:
+            headTrip->customerName = driverScreenTripLine;
+            break;
+        case 3:
+            headTrip->customerContactNumber = driverScreenTripLine;
+            break;
+        case 4:
+            headTrip->startingPlace = driverScreenTripLine;
+            break;
+        case 5:
+            headTrip->destination = driverScreenTripLine;
+            break;
+        case 6:
+            headTrip->tripDate[0] = stoi(driverScreenTripLine);
+            break;
+        case 7:
+            headTrip->tripDate[1] = stoi(driverScreenTripLine);
+            break;
+        case 8:
+            headTrip->tripDate[2] = stoi(driverScreenTripLine);
+            break;
+        case 9:
+            headTrip->time = driverScreenTripLine;
+            break;
+        case 10:
+            if (driverScreenTripLine == "true")
+            {
+                headTrip->available = true;
+            }
+            else if (driverScreenTripLine == "false")
+            {
+                headTrip->available = false;
+            }
+        }
+
+        // Count the number of end markers:
+        if (driverScreenTripLine == "-----End of item-----")
+        {
+            driverScreenEndMarkerCounter++;
+        }
+    }
+    // Close the file:
+    tripData.close();
+
+    // Set the head node's next position to NULL:
+    headTrip->nextPosition = NULL;
+
+    // Create the previous node as the headNode:
+    Trips *previousTrip = headTrip;
+
+    /* Each item in the data file takes up 11 lines(including the end marker)
+     * so, if we add 11 to the line counter each time we reach a new node, 
+     * we'll be able to obtain the onformation we need:
+     */
+    int addEleven = 0;
+
+    // Start from the second node:
+    for (int i = 1; i < driverScreenEndMarkerCounter; i++)
+    {
+        Trips *newTrip = new Trips;
+
+        // Set the line counter to zero:
+        driverScreenTripLineCounter = 0;
+
+        // Add eleven:
+        addEleven += 11;
+
+        // Re-open the tripData.txt file and look for the next set of trip details:
+        tripData.open("tripData.txt", ios::in);
+
+        while (getline(tripData, driverScreenTripLine))
+        {
+            // Count the number of lines being read:
+            driverScreenTripLineCounter++;
+
+            if (driverScreenTripLineCounter == 1 + addEleven)
+            {
+                newTrip->tripNumber = stoi(driverScreenTripLine);
+            }
+            else if (driverScreenTripLineCounter == 2 + addEleven)
+            {
+                newTrip->customerName = driverScreenTripLine;
+            }
+            else if (driverScreenTripLineCounter == 3 + addEleven)
+            {
+                newTrip->customerContactNumber = driverScreenTripLine;
+            }
+            else if (driverScreenTripLineCounter == 4 + addEleven)
+            {
+                newTrip->startingPlace = driverScreenTripLine;
+            }
+            else if (driverScreenTripLineCounter == 5 + addEleven)
+            {
+                newTrip->destination = driverScreenTripLine;
+            }
+            else if (driverScreenTripLineCounter == 6 + addEleven)
+            {
+                newTrip->tripDate[0] = stoi(driverScreenTripLine);
+            }
+            else if (driverScreenTripLineCounter == 7 + addEleven)
+            {
+                newTrip->tripDate[1] = stoi(driverScreenTripLine);
+            }
+            else if (driverScreenTripLineCounter == 8 + addEleven)
+            {
+                newTrip->tripDate[2] = stoi(driverScreenTripLine);
+            }
+            else if (driverScreenTripLineCounter == 9 + addEleven)
+            {
+                newTrip->time = driverScreenTripLine;
+            }
+            else if (driverScreenTripLineCounter == 10 + addEleven)
+            {
+                if (driverScreenTripLine == "true")
+                {
+                    newTrip->available = true;
+                }
+                else if (driverScreenTripLine == "false")
+                {
+                    newTrip->available = false;
+                }
+            }
+        }
+        // Close the file:
+        tripData.close();
+
+        // Set the node's next position to NULL:
+        newTrip->nextPosition = NULL;
+
+        // Set the connection between the last node and the current node:
+        previousTrip->nextPosition = newTrip;
+
+        // Replace the values of the previous node with those of the current node:
+        previousTrip = newTrip;
+    }
+
+    // Print out all of the trips booked:
+    Trips *temporaryTrip = headTrip;
+
+    while (temporaryTrip != NULL)
+    {
+        cout << "Trip Number: " << temporaryTrip->tripNumber << endl;
+        cout << "Customer Name: " << temporaryTrip->customerName << endl;
+        cout << "Contact Number: " << temporaryTrip->customerContactNumber << endl;
+        cout << "Starting Place: " << temporaryTrip->startingPlace << endl;
+        cout << "Destination: " << temporaryTrip->destination << endl;
+        cout << "Trip Date: " << temporaryTrip->tripDate[0] << "/" << temporaryTrip->tripDate[1] << "/" << temporaryTrip->tripDate[2] << endl;
+        cout << "Trip Time: " << temporaryTrip->time << endl;
+        cout << "Availability: ";
+        if (temporaryTrip->available == true)
+        {
+            cout << "Available" << endl;
+        }
+        else if (temporaryTrip->available == false)
+        {
+            cout << "Unavailable" << endl;
+        }
+
+        // Create a space before the next trip:
+        cout << endl;
+
+        // Retrieve the next node:
+        temporaryTrip = temporaryTrip->nextPosition;
+    }
 }
 
 // Admin LogIn Function:

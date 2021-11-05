@@ -1,0 +1,33 @@
+1
+Adrima Fey
+1111111111
+Motueka
+Auckland
+11
+12
+2021
+12.34
+true
+-----End of item-----
+2
+Johnathan Worrall
+2222222222
+Auckland
+Motueka
+22
+11
+2022
+11.10
+false
+-----End of item-----
+3
+Haeiviary Small
+3333333333
+Wellington
+Christchurch
+13
+09
+1997
+09.00
+true
+-----End of item-----
