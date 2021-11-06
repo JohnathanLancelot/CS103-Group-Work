@@ -11,6 +11,7 @@
 #include <fstream>
 #include <chrono>
 #include <thread>
+#include <vector>
 using namespace std;
 
 // Global Variables:
@@ -111,6 +112,20 @@ struct Driver
     int endorsementExpiry[3] = {0,0,0};
 };
 
+// Driver Activity Struct / Claimed Trips:
+struct ClaimedTrips
+{
+    string emailAddress;
+    int day = 0;
+    int month = 0;
+    int year = 0;
+    double cost = 0;
+    bool validDate1 = false;
+    bool validDate2 = false;
+    bool validDate3 = false;
+    int emailLine;
+};
+
 // PLACEHOLDER TRIP BOOKING STRUCT:
 struct Trips
 {
@@ -152,12 +167,6 @@ int main()
 
     // Close the file:
     adminData.close();
-
-    /* Create a file for the storage of the driver's activities,
-     * if there isn't one already, then close the file:
-     */
-    driverActivityData.open("driverActivityData.txt", ios::out);
-    driverActivityData.close();
 
     // Start the program with the intro:
     introFunction();
@@ -920,6 +929,115 @@ void driverScreen()
     time_t now = time(0);
     struct  tm* dt = localtime(&now);
     cout << "Today's Date: " << dt->tm_mday << "/" << dt->tm_mon + 1 << "/" << dt->tm_year + 1900 << endl << endl;
+
+    // Create some local variables:
+    int numberOfTripsToday = 0;
+    int reportLinesCounter = 0;
+    double sumOfCosts = 0;
+    string activityLine;
+    vector<ClaimedTrips>activityEmailLine;
+
+    // Look for the current user's email address in the file containing claimed trips:
+    driverActivityData.open("driverActivityData.txt",ios::in);
+    while (getline(driverActivityData, activityLine))
+    {
+        // Count the lines being read:
+        reportLinesCounter++;
+
+        if (activityLine == *driverEmailLogInPtr)
+        {
+            // Create a new instance for the struct array:
+            ClaimedTrips *newTrip = new ClaimedTrips;
+
+            // Record the lines at which we found the email address in the vector:
+            newTrip->emailLine = reportLinesCounter;
+            activityEmailLine.push_back(*newTrip);
+        }
+    }
+
+    // Close the file:
+    driverActivityData.close();
+    reportLinesCounter = 0;
+
+    // For each email instance in the array, check if the date is today:
+    for (auto i = activityEmailLine.begin(); i != activityEmailLine.end(); i++)
+    {
+        // Open the file:
+        driverActivityData.open("driverActivityData.txt", ios::in);
+
+        while (getline(driverActivityData, activityLine))
+        {
+            // Count the lines being read:
+            reportLinesCounter++;
+
+            // First check the date of each trip:
+            if (reportLinesCounter == i->emailLine + 1)
+            {
+                // Check if the day number is correct:
+                if (stoi(activityLine) == dt->tm_mday)
+                {
+                    i->validDate1 = true;
+                }
+                else
+                {
+                    i->validDate1 = false;
+                }
+            }
+            else if (reportLinesCounter == i->emailLine + 2)
+            {
+                // Check if the month is correct:
+                if (stoi(activityLine) == dt->tm_mon + 1)
+                {
+                    i->validDate2 = true;
+                }
+                else
+                {
+                    i->validDate2 = false;
+                }
+            }
+            else if (reportLinesCounter == i->emailLine + 3)
+            {
+                // Check if the year is correct:
+                if (stoi(activityLine) == dt->tm_year + 1900)
+                {
+                    i->validDate3 = true;
+                }
+                else
+                {
+                    i->validDate3 = false;
+                }
+            }
+            // Now check the cost of each trip (4 lines down from the email address):
+            else if (reportLinesCounter == i->emailLine + 4)
+            {
+                i->cost = stod(activityLine);
+            }
+        }
+        // Close the file:
+        driverActivityData.close();
+        reportLinesCounter = 0;
+
+        // Now, if all the date validations are true, add to the sum of costs:
+        if (i->validDate1 == true && i->validDate2 == true && i->validDate3 == true)
+        {
+            sumOfCosts += i->cost;
+
+            // And add to the trips counter:
+            numberOfTripsToday++;
+        }
+    }
+
+    // Print the number of trips today:
+    cout << "Your Trips Today: " << numberOfTripsToday << endl << endl;
+
+    // Print the total cost of trips today:
+    cout << "Total Earnings: " << sumOfCosts << endl << endl;
+
+    /* My research has shown that taxi drivers in NZ earn an average of $42,423 a year,
+     * making their tax rate ((10.5% of 14,000) + (17.5% of (42,423 - 14,000)) / 42,423) * 100 = 15.2%.
+     * (((0.105 * 14000) + (0.175 * (42423 - 14000))) / 42423) * 100 = 15.2.
+     */
+    cout << "Tax Amount: " << sumOfCosts * 0.152 << endl << endl;
 }
 
 // Admin LogIn Function:
