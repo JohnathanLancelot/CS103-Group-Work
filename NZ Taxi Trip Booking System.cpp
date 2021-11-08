@@ -145,6 +145,7 @@ void introFunction();
 string roleChoiceFunction();
 void customerLogIn();
 void customerRegistration();
+void customerScreen();
 void driverLogIn();
 void driverRegistration();
 void driverScreen();
@@ -174,20 +175,6 @@ int main()
 
 void introFunction()
 {
-    /* TO ADD (JADE):
-     * - Some kind of text art with a taxi / road theme (Johnathan happy to help with this part)
-     * - Business Title
-     * - Terms and Conditions
-     * - More professional confirmation of the user category (role choice function) and handling of unexpected inputs
-     * - Customer LogIn
-     * - Customer Registration
-     * 
-     * TO ADD (JOHNATHAN):
-     * - Driver LogIn
-     * - Driver Registration
-     * - Admin LogIn
-     */
-
     // Placeholder for the intro screen:
     cout << "[intro screen]" << endl << endl;
 
@@ -280,7 +267,6 @@ string roleChoiceFunction()
     }
     else
     {
-        // TO DO (JADE): Possibly change this to proper error handling as covered in week 13
         while (*roleChoicePtr != "C" && *roleChoicePtr != "D" && *roleChoicePtr != "A")
         {
             cout << "Sorry. You have entered an invalid option. Please try again." << endl;
@@ -299,6 +285,29 @@ void customerLogIn()
 void customerRegistration()
 {
     cout << "\n[Insert Customer Registration Here]" << endl;
+}
+
+// Customer Screen:
+void customerScreen()
+{
+    /* Header Section:
+     * Taxi modified from a car ASCII image "MACHO 2020" by The Animator on animasci.com
+     * License will be included with these programming files.
+     */
+    cout << endl << endl;
+    cout << "                  ---" << endl;
+    cout << "                  | |" << endl;
+    cout << "                 ....." << endl;
+    cout << "           , ,''  |    ```...___," << endl;
+    cout << "    .--  ''  P(___|_______/    (|" << endl;
+    cout << "  ( //            |             |" << endl;
+    cout << "  ` ._: ' ' :_____|______: ' ' :/" << endl;
+    cout << "      '  o  '            '  o  '" << endl;
+    cout << "        - -                - - " << endl;
+    cout << "______________________________________________" << endl;
+    cout << "______________________________________________" << endl << endl;
+
+    cout << "\nWelcome, Customer!" << endl << endl;
 }
 
 // Driver LogIn Function:
@@ -691,7 +700,7 @@ void driverScreen()
     cout << "______________________________________________" << endl;
     cout << "______________________________________________" << endl << endl;
 
-    cout << "\nDriver Screen" << endl << endl;
+    cout << "\nWelcome, Driver!" << endl << endl;
 
     // Payment Details Section:
     cout << "\n|| Payment Details ||" << endl << endl;
@@ -922,6 +931,14 @@ void driverScreen()
         temporaryTrip = temporaryTrip->nextPosition;
     }
 
+    // Delete the linked list to avoid a memory leak:
+    while (headTrip != NULL)
+    {
+        Trips *tempNode = headTrip;
+        headTrip = tempNode->nextPosition;
+        delete(tempNode);
+    }
+
     // Report Section:
     cout << "\n\n|| Daily Report ||" << endl << endl;
 
@@ -1038,6 +1055,51 @@ void driverScreen()
      * (((0.105 * 14000) + (0.175 * (42423 - 14000))) / 42423) * 100 = 15.2.
      */
     cout << "Tax Amount: " << sumOfCosts * 0.152 << endl << endl;
+
+    // Give the user some options to move forward:
+    cout << "Would you like to claim a trip (type: claim), or log out (type: log out)? ";
+    string driverScreenEndOption;
+    getline(cin, driverScreenEndOption);
+
+    // Acting on the user's input:
+    if (driverScreenEndOption == "claim" || driverScreenEndOption == "Claim")
+    {
+        // Claim a trip:
+    }
+    else if (driverScreenEndOption == "log out" || driverScreenEndOption == "Log out" || driverScreenEndOption == "Log Out")
+    {
+        cout << endl;
+
+        // Delete the struct instances in the vector so as to avoid a memory leak:
+        activityEmailLine.clear();
+
+        // Send the user back to the starting screen:
+        introFunction();
+    }
+    else
+    {
+        // Fixing a missed inputs bug:
+        cin.ignore();
+
+        while (driverScreenEndOption != "claim" && driverScreenEndOption != "Claim" && driverScreenEndOption != "log out" && driverScreenEndOption != "Log out" && driverScreenEndOption != "Log Out")
+        {
+            cout << "\nSorry! You have entered an invalid option. Please try again." << endl;
+            cout << "What would you like to do? ";
+            cin >> driverScreenEndOption;
+        }
+        // Once the input is valid, act on it:
+        if (driverScreenEndOption == "claim" || driverScreenEndOption == "Claim")
+        {
+            // Claim a trip:
+        }
+        else if (driverScreenEndOption == "log out" || driverScreenEndOption == "Log out" || driverScreenEndOption == "Log Out")
+        {
+            cout << endl;
+
+            // Send the user back to the starting screen:
+            introFunction();
+        }
+    }
 }
 
 // Admin LogIn Function:
