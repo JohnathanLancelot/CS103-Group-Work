@@ -19,6 +19,26 @@ fstream tripData;
 string roleChoice;
 string *roleChoicePtr = &roleChoice;
 
+// Global Variables For Customer Screen:
+double costPerKm = 2.60;
+double *costPerKmPtr = &costPerKm;
+double costPerHourWaiting = 50.00;
+double *costPerHourWaitingPtr = &costPerHourWaiting;
+double baseFare = 3.50;
+double *baseFarePtr = &baseFare;
+double airportCBDFixedFare = 63.00;
+double *airportCBDFixedFarePtr = &airportCBDFixedFare;
+double estimateDistance;
+double *estimateDistancePtr = &estimateDistance;
+int customerScreenMenuOption;
+int *customerScreenMenuOptionPtr = &customerScreenMenuOption;
+string estimateStart;
+string *estimateStartPtr = &estimateStart;
+string estimateDestination;
+string *estimateDestinationPtr = &estimateDestination;
+string pauseCharacter;
+string *pauseCharacterPtr = &pauseCharacter;
+
 // Global Variables For Driver Registration / LogIn:
 fstream driverData;
 string licenceStatus;
@@ -146,6 +166,8 @@ string roleChoiceFunction();
 void customerLogIn();
 void customerRegistration();
 void customerScreen();
+void priceEstimation();
+void tripBooking();
 void driverLogIn();
 void driverRegistration();
 void driverScreen();
@@ -279,6 +301,10 @@ string roleChoiceFunction()
 void customerLogIn()
 {
     cout << "\n[Insert Customer LogIn Here]" << endl;
+
+    // TEMPORARY:
+    cout << endl << endl;
+    customerScreen();
 }
 
 // Customer Registration Function:
@@ -308,6 +334,119 @@ void customerScreen()
     cout << "______________________________________________" << endl << endl;
 
     cout << "\nWelcome, Customer!" << endl << endl;
+
+    // Standard Costs Section:
+    cout << "\n|| Standard Costs ||" << endl << endl;
+
+    cout << "Base fare                        : " << *baseFarePtr << endl << endl;
+    cout << "Cost per kilometer               : " << *costPerKmPtr << endl << endl;
+    cout << "Cost per hour of waiting time" << endl;
+    cout << "(if applicable)                  : " << *costPerHourWaitingPtr << endl << endl;
+    cout << "Fixed fare between the airport" << endl;
+    cout << "and the CBD                      : " << *airportCBDFixedFarePtr << endl << endl;
+
+    // Options Section:
+    cout << "\n|| Options ||" << endl << endl;
+
+    cout << "1. Get a price estimation" << endl << endl;
+    cout << "2. Book or cancel a trip" << endl << endl;
+    cout << "3. Log out" << endl << endl;
+
+    cout << "What would you like to do?" << endl;
+    cout << "Please type 1, 2 or 3 : ";
+    cin >> *customerScreenMenuOptionPtr;
+
+    cout << endl;
+
+    // Act on the user's choice:
+    if (*customerScreenMenuOptionPtr == 1)
+    {
+        // Start the price estimation function:
+        priceEstimation();
+    }
+    else if (*customerScreenMenuOptionPtr == 2)
+    {
+        tripBooking();
+    }
+    else if (*customerScreenMenuOptionPtr == 3)
+    {
+        // Go back to the intro screen to log out:
+        introFunction();
+    }
+    else
+    {
+        // Manage invalid inputs:
+        while (*customerScreenMenuOptionPtr != 1 && *customerScreenMenuOptionPtr != 2 && *customerScreenMenuOptionPtr != 3)
+        {
+            cout << "Sorry. Invalid input. Please type 1, 2 or 3: ";
+            cin >> *customerScreenMenuOptionPtr;
+            cout << endl;
+        }
+        // Once the input is valid, act on it:
+        if (*customerScreenMenuOptionPtr == 1)
+        {
+            // Start the price estimation function:
+            priceEstimation();
+        }
+        else if (*customerScreenMenuOptionPtr == 2)
+        {
+            tripBooking();
+        }
+        else if (*customerScreenMenuOptionPtr == 3)
+        {
+            // Go back to the intro screen to log out:
+            introFunction();
+        }
+    }
+}
+
+// Price Estimation Function:
+void priceEstimation()
+{
+    // Header Section:
+    cout << "___________________________________________________" << endl << endl;
+    cout << "---------------------------------------------------" << endl;
+    cout << "___________________________________________________" << endl << endl;
+
+    cout << "Price Estimation" << endl << endl;
+
+    cout << "Please Note: This estimation does not apply to trips to and from" << endl;
+    cout << "the airport and the CBD. The set fare for these is displayed above." << endl << endl;
+
+    // Prevent missed inputs:
+    cin.ignore();
+
+    // Gather input:
+    cout << "\nWhat is your starting location? ";
+    getline(cin, *estimateStartPtr);
+
+    cout << "\nWhat is your destination? ";
+    getline(cin, *estimateDestinationPtr);
+
+    cout << "\nHow far are you travelling?" << endl;
+    cout << "(please do not include 'km') : ";
+    cin >> *estimateDistancePtr;
+
+    // Calculate and display the estimated price:
+    cout << "\n\nYou should expect to pay $" << *baseFarePtr + (*estimateDistancePtr * *costPerKmPtr) << " for your trip." << endl << endl;
+
+    // Display the 'road' again:
+    cout << "___________________________________________________" << endl << endl;
+    cout << "---------------------------------------------------" << endl;
+    cout << "___________________________________________________" << endl << endl;
+
+    // Make the system wait for input:
+    cout << "Please enter any character to continue... ";
+    cin >> *pauseCharacterPtr;
+
+    // Back to the customer screen:
+    customerScreen();
+}
+
+// Trip Booking Function:
+void tripBooking()
+{
+    cout << "\n[Insert Trip Booking Screen Here]" << endl;
 }
 
 // Driver LogIn Function:
