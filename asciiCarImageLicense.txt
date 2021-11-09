@@ -1,0 +1,19 @@
+License Information For The Modification & Use Of The ASCII Car Image Used In This App:
+
+Creator: The Animator
+
+Title Of Work: Macho 2020
+
+Made available under the Creative Commons CC BY 3.0 by animasci.com
+
+Link To Source: https://animasci.com/play/ceaf4bcc434d654601434e48dee70000/Macho-2020
+
+Link To License: https://creativecommons.org/licenses/by/3.0/legalcode
+
+Disclaimer: We, the creators of this app are not affiliated with or endorsed by the creator of this ASCII car image.
+
+Changes have been made by Johnathan Worrall to the original image (this is a derivative). Acute accents have been changed to 
+apostrophes (accute accents were not found to be compatible with Visual Studio), o's have been added to the wheels, a box 
+shape has been added to the top of the car to make it look like a taxi, and a P has been added insted of a second bracket to 
+indicate a side mirror.
+
