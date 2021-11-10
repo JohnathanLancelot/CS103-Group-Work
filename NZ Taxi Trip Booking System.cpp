@@ -160,6 +160,11 @@ struct Trips
     string time;
     bool available = true;
     Trips *nextPosition;
+
+    /* This will help us only print the trips booked
+     * for the present or future.
+     */
+    bool past = false;
 };
 
 // Functions:
@@ -894,6 +899,12 @@ void driverScreen()
     int driverScreenTripLineCounter = 0;
     int driverScreenEndMarkerCounter = 0;
 
+    /* We're going to be comparing the trips' dates with the current date
+     * to see if any are in the past, as we don't want to print these.
+     */
+    time_t now = time(0);
+    struct  tm* dt = localtime(&now);
+
     /* Now create a linked list of all the trips in the file,
      * starting with the 'headNode':
      */
@@ -951,6 +962,32 @@ void driverScreen()
     }
     // Close the file:
     tripData.close();
+
+    // Check if the date is in the past, starting with the year:
+    if (headTrip->tripDate[2] < (dt->tm_year + 1900))
+    {
+        headTrip->past = true;
+    }
+    else
+    {
+        // Check the month:
+        if (headTrip->tripDate[2] == (dt->tm_year + 1900) && headTrip->tripDate[1] < (dt->tm_mon + 1))
+        {
+            headTrip->past = true;
+        }
+        else
+        {
+            // Check the day:
+            if (headTrip->tripDate[2] == (dt->tm_year + 1900) && headTrip->tripDate[1] == (dt->tm_mon + 1) && headTrip->tripDate[0] < dt->tm_mday)
+            {
+                headTrip->past = true;
+            }
+            else
+            {
+                headTrip->past = false;
+            }
+        }
+    }
 
     // Set the head node's next position to NULL:
     headTrip->nextPosition = NULL;
@@ -1034,6 +1071,32 @@ void driverScreen()
         // Close the file:
         tripData.close();
 
+        // Check if the date is in the past, starting with the year:
+        if (newTrip->tripDate[2] < (dt->tm_year + 1900))
+        {
+            newTrip->past = true;
+        }
+        else
+        {
+            // Check the month:
+            if (newTrip->tripDate[2] == (dt->tm_year + 1900) && newTrip->tripDate[1] < (dt->tm_mon + 1))
+            {
+                newTrip->past = true;
+            }
+            else
+            {
+                // Check the day:
+                if (newTrip->tripDate[2] == (dt->tm_year + 1900) && newTrip->tripDate[1] == (dt->tm_mon + 1) && newTrip->tripDate[0] < dt->tm_mday)
+                {
+                    newTrip->past = true;
+                }
+                else
+                {
+                    newTrip->past = false;
+                }
+            }
+        }
+
         // Set the node's next position to NULL:
         newTrip->nextPosition = NULL;
 
@@ -1044,30 +1107,33 @@ void driverScreen()
         previousTrip = newTrip;
     }
 
-    // Print out all of the trips booked:
+    // Print out all of the trips booked, unless they are in the past:
     Trips *temporaryTrip = headTrip;
 
     while (temporaryTrip != NULL)
     {
-        cout << "Trip Number: " << temporaryTrip->tripNumber << endl;
-        cout << "Customer Name: " << temporaryTrip->customerName << endl;
-        cout << "Contact Number: " << temporaryTrip->customerContactNumber << endl;
-        cout << "Starting Place: " << temporaryTrip->startingPlace << endl;
-        cout << "Destination: " << temporaryTrip->destination << endl;
-        cout << "Trip Date: " << temporaryTrip->tripDate[0] << "/" << temporaryTrip->tripDate[1] << "/" << temporaryTrip->tripDate[2] << endl;
-        cout << "Trip Time: " << temporaryTrip->time << endl;
-        cout << "Availability: ";
-        if (temporaryTrip->available == true)
+        if (temporaryTrip->past == false)
         {
-            cout << "Available" << endl;
-        }
-        else if (temporaryTrip->available == false)
-        {
-            cout << "Unavailable" << endl;
-        }
+            cout << "Trip Number: " << temporaryTrip->tripNumber << endl;
+            cout << "Customer Name: " << temporaryTrip->customerName << endl;
+            cout << "Contact Number: " << temporaryTrip->customerContactNumber << endl;
+            cout << "Starting Place: " << temporaryTrip->startingPlace << endl;
+            cout << "Destination: " << temporaryTrip->destination << endl;
+            cout << "Trip Date: " << temporaryTrip->tripDate[0] << "/" << temporaryTrip->tripDate[1] << "/" << temporaryTrip->tripDate[2] << endl;
+            cout << "Trip Time: " << temporaryTrip->time << endl;
+            cout << "Availability: ";
+            if (temporaryTrip->available == true)
+            {
+                cout << "Available" << endl;
+            }
+            else if (temporaryTrip->available == false)
+            {
+                cout << "Unavailable" << endl;
+            }
 
-        // Create a space before the next trip:
-        cout << endl;
+            // Create a space before the next trip:
+            cout << endl;
+        }
 
         // Retrieve the next node:
         temporaryTrip = temporaryTrip->nextPosition;
@@ -1085,8 +1151,6 @@ void driverScreen()
     cout << "\n\n|| Daily Report ||" << endl << endl;
 
     // To print out today's date...
-    time_t now = time(0);
-    struct  tm* dt = localtime(&now);
     cout << "Today's Date: " << dt->tm_mday << "/" << dt->tm_mon + 1 << "/" << dt->tm_year + 1900 << endl << endl;
 
     // Create some local variables:
