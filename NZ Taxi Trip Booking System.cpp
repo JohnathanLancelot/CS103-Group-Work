@@ -75,6 +75,8 @@ string driverActivityLine;
 string *driverActivityLinePtr = &driverActivityLine;
 int driverActivityLinesCounter = 0;
 int *driverActivityLinesCounterPtr = &driverActivityLinesCounter;
+int tripToClaim;
+int *tripToClaimPtr = &tripToClaim;
 bool dateValidation1;
 bool *dateValidation1Ptr = &dateValidation1;
 bool dateValidation2;
@@ -171,6 +173,7 @@ void tripBooking();
 void driverLogIn();
 void driverRegistration();
 void driverScreen();
+void claimTrip();
 void adminLogIn();
 void adminScreen();
 
@@ -206,7 +209,7 @@ void introFunction()
     if (*roleChoicePtr == "C")
     {
         // Check if they already have an account or if they need to register:
-        cout << "\nDo you have an account? Yes or No : ";
+        cout << "\nDo you have an account? Yes or No: ";
         string customerAccountAnswer;
         string *customerAccountAnswerPtr = &customerAccountAnswer;
         cin >> *customerAccountAnswerPtr;
@@ -223,7 +226,7 @@ void introFunction()
             while (*customerAccountAnswerPtr != "Yes" && *customerAccountAnswerPtr != "No")
             {
                 cout << "Sorry. You have entered an invalid option. Please try again." << endl;
-                cout << "\nDo you have an account? Yes or No : ";
+                cout << "\nDo you have an account? Yes or No: ";
                 cin >> *customerAccountAnswerPtr;
             }
             if (*customerAccountAnswerPtr == "Yes")
@@ -239,7 +242,7 @@ void introFunction()
     else if (*roleChoicePtr == "D")
     {
         // Check if they already have an account or if they need to register:
-        cout << "\nDo you have an account? Yes or No : ";
+        cout << "\nDo you have an account? Yes or No: ";
         string driverAccountAnswer;
         string* driverAccountAnswerPtr = &driverAccountAnswer;
         cin >> *driverAccountAnswerPtr;
@@ -256,7 +259,7 @@ void introFunction()
             while (*driverAccountAnswerPtr != "Yes" && *driverAccountAnswerPtr != "No")
             {
                 cout << "Sorry. You have entered an invalid option. Please try again." << endl;
-                cout << "\nDo you have an account? Yes or No : ";
+                cout << "\nDo you have an account? Yes or No: ";
                 cin >> *driverAccountAnswerPtr;
             }
             if (*driverAccountAnswerPtr == "Yes")
@@ -353,7 +356,7 @@ void customerScreen()
     cout << "3. Log out" << endl << endl;
 
     cout << "What would you like to do?" << endl;
-    cout << "Please type 1, 2 or 3 : ";
+    cout << "Please type 1, 2 or 3: ";
     cin >> *customerScreenMenuOptionPtr;
 
     cout << endl;
@@ -424,7 +427,7 @@ void priceEstimation()
     getline(cin, *estimateDestinationPtr);
 
     cout << "\nHow far are you travelling?" << endl;
-    cout << "(please do not include 'km') : ";
+    cout << "(please do not include 'km'): ";
     cin >> *estimateDistancePtr;
 
     // Calculate and display the estimated price:
@@ -874,7 +877,7 @@ void driverScreen()
     cout << "Bank Name: " << loggedInDriver.bankName << endl;
     cout << "Bank Account Number: " << loggedInDriver.bankAccountNumber << endl << endl;
 
-    // Payment Details Section:
+    // Trips Booked Section:
     cout << "\n|| Trips Booked By Customers ||" << endl << endl;
 
     // Open the tripData.txt file to view the trips booked:
@@ -1201,11 +1204,12 @@ void driverScreen()
     getline(cin, driverScreenEndOption);
 
     // Acting on the user's input:
-    if (driverScreenEndOption == "claim" || driverScreenEndOption == "Claim")
+    if (driverScreenEndOption == "claim")
     {
         // Claim a trip:
+        claimTrip();
     }
-    else if (driverScreenEndOption == "log out" || driverScreenEndOption == "Log out" || driverScreenEndOption == "Log Out")
+    else if (driverScreenEndOption == "log out")
     {
         cout << endl;
 
@@ -1220,23 +1224,343 @@ void driverScreen()
         // Fixing a missed inputs bug:
         cin.ignore();
 
-        while (driverScreenEndOption != "claim" && driverScreenEndOption != "Claim" && driverScreenEndOption != "log out" && driverScreenEndOption != "Log out" && driverScreenEndOption != "Log Out")
+        while (driverScreenEndOption != "claim" && driverScreenEndOption != "log out")
         {
             cout << "\nSorry! You have entered an invalid option. Please try again." << endl;
             cout << "What would you like to do? ";
-            cin >> driverScreenEndOption;
+            getline(cin, driverScreenEndOption);
         }
         // Once the input is valid, act on it:
-        if (driverScreenEndOption == "claim" || driverScreenEndOption == "Claim")
+        if (driverScreenEndOption == "claim")
         {
             // Claim a trip:
+            claimTrip();
         }
-        else if (driverScreenEndOption == "log out" || driverScreenEndOption == "Log out" || driverScreenEndOption == "Log Out")
+        else if (driverScreenEndOption == "log out")
         {
             cout << endl;
 
             // Send the user back to the starting screen:
             introFunction();
+        }
+    }
+}
+
+// Claim Trip Function:
+void claimTrip()
+{
+    // Local Variables:
+    string yesOrNo;
+    string availability;
+    string tripLine;
+    int lineCount = 0;
+    int counting = 0;
+    int multiply = 0;
+    vector<string>addClaim;
+    vector<string>trips;
+
+    cout << "\nWhich trip would you like to claim?" << endl;
+    cout << "Trip Number: ";
+    cin >> *tripToClaimPtr;
+
+    // First check if this trip exists:
+    tripData.open("tripData.txt", ios::in);
+
+    while (getline(tripData, tripLine))
+    {
+        lineCount++;
+    }
+    tripData.close();
+
+    /* Since there are 11 lines in each collection of data on trips,
+     * and since these trips' trip numbers are assigned in order,
+     * we can use math to figure out if this trip exists or not.
+     */
+    if (lineCount >= (*tripToClaimPtr * 11))
+    {
+        // Then the trip exists, and we now have to read it to see if it's available:
+        tripData.open("tripData.txt", ios::in);
+
+        /* (*tripToClaimPtr * 11) gets us to the end of the section / trip we are looking
+         * for, so (*tripToClaimPtr * 11) - 1 will give us the position of the availability,
+         * which is one line up from the end marker.
+         * 
+         * We're also looking for the date and the cost----to be used in adding this trip to the
+         * claimed trips file (driverActivityData) if it isn't already there.
+         */
+        while (getline(tripData, tripLine))
+        {
+            counting++;
+
+            if (counting == ((*tripToClaimPtr * 11) - 1))
+            {
+                availability = tripLine;
+            }
+            // Store the date and cost in the addClaim vector:
+            else if (counting == ((*tripToClaimPtr * 11) - 5))
+            {
+                addClaim.push_back(tripLine);
+            }
+            else if (counting == ((*tripToClaimPtr * 11) - 4))
+            {
+                addClaim.push_back(tripLine);
+            }
+            else if (counting == ((*tripToClaimPtr * 11) - 3))
+            {
+                addClaim.push_back(tripLine);
+            }
+            else if (counting == ((*tripToClaimPtr * 11) - 2))
+            {
+                addClaim.push_back(tripLine);
+            }
+        }
+        // Close the file and reset counting:
+        tripData.close();
+        counting = 0;
+
+        /* If the trip is available, re - write the file with the availability now
+         * as false, and store the claimed trip in the driverActivityData file.
+         */
+        if (availability == "true")
+        {
+            // Store the claimed trip in the driverActivityData file:
+            driverActivityData.open("driverActivityData.txt", ios::out | ios::app);
+
+            // Add the currently logged in driver's email address:
+            driverActivityData << *driverEmailLogInPtr << endl;
+
+            // Add the date and cost from the addClaim vector:
+            for (int i = 0; i < addClaim.size(); i++)
+            {
+                driverActivityData << addClaim[i] << endl;
+            }
+
+            // Add the end marker:
+            driverActivityData << "-----End of item-----" << endl;
+
+            // Close the file and clear the vector:
+            driverActivityData.close();
+            addClaim.clear();
+
+            // Open, read and store every line from the tripData file:
+            tripData.open("tripData.txt", ios::in);
+            
+            while (getline(tripData, tripLine))
+            {
+                // Store each line in the trips vector:
+                trips.push_back(tripLine);
+            }
+
+            // Close the file:
+            tripData.close();
+
+            // Re-write the tripData file:
+            tripData.open("tripData.txt", ios::out);
+
+            // Reset the counter:
+            counting = 0;
+
+            for (int i = 0; i < trips.size(); i++)
+            {
+                // Count lines read:
+                counting++;
+
+                /* Put each line back into the file, except for the
+                 * line containing the availability of the trip we just claimed.
+                 * This has to be changed to false to show it has been taken.
+                 */
+                if (counting == ((*tripToClaimPtr * 11) - 1))
+                {
+                    tripData << "false" << endl;
+                    trips[i] = "false";
+                }
+                else
+                {
+                    tripData << trips[i] << endl;
+                }
+            }
+            // Close the file and reset counting to 0:
+            tripData.close();
+            counting = 0;
+
+            // Re-print the trips:
+            cout << "\n\n\n|| Trips Booked By Customers ||" << endl << endl;
+
+            // Using math to tell where to print different items (11 lines per trip):
+            for (int i = 0; i < trips.size(); i++)
+            {
+                // For every first line:
+                if (i == (multiply * 11))
+                {
+                    cout << "Trip Number: " << trips[i] << endl;
+                }
+                // For every second line:
+                else if (i == (multiply * 11) + 1)
+                {
+                    cout << "Customer Name: " << trips[i] << endl;
+                }
+                // For every third line:
+                else if (i == (multiply * 11) + 2)
+                {
+                    cout << "Contact Number: " << trips[i] << endl;
+                }
+                // For every fourth line:
+                else if (i == (multiply * 11) + 3)
+                {
+                    cout << "Starting Place: " << trips[i] << endl;
+                }
+                // For every fifth line:
+                else if (i == (multiply * 11) + 4)
+                {
+                    cout << "Destination: " << trips[i] << endl;
+                }
+                // For every sixth line:
+                else if (i == (multiply * 11) + 5)
+                {
+                    cout << "Trip Date: " << trips[i] << "/";
+                }
+                // For every seventh line:
+                else if (i == (multiply * 11) + 6)
+                {
+                    cout << trips[i] << "/";
+                }
+                // For every eighth line:
+                else if (i == (multiply * 11) + 7)
+                {
+                    cout << trips[i] << endl;
+                }
+                // For every ninth line:
+                else if (i == (multiply * 11) + 8)
+                {
+                    cout << "Trip Time: " << trips[i] << endl;
+                }
+                // For every tenth line:
+                else if (i == (multiply * 11) + 9)
+                {
+                    cout << "Availability: ";
+                    if (trips[i] == "true")
+                    {
+                        cout << "Available" << endl;
+                    }
+                    else if (trips[i] == "false")
+                    {
+                        cout << "Unavailable" << endl;
+                    }
+                }
+                // For every eleventh line:
+                else if (i == (multiply * 11) + 10)
+                {
+                    // Leave a space before the next trip:
+                    cout << endl;
+                    multiply++;
+                }
+            }
+            // Clear the vector, reset multiply:
+            trips.clear();
+            multiply = 0;
+
+            // Ask the user if they would like to claim another trip:
+            cout << "\n\nWould you like to claim another trip (type y or n)? ";
+            cin >> yesOrNo;
+
+            if (yesOrNo == "y")
+            {
+                claimTrip();
+            }
+            else if (yesOrNo == "n")
+            {
+                // Back to the driver screen:
+                driverScreen();
+            }
+            else
+            {
+                // Invalid input:
+                while (yesOrNo != "y" && yesOrNo != "n")
+                {
+                    cout << "\nSorry! Invalid input. Please type y or n: ";
+                    cin >> yesOrNo;
+                }
+                // When valid, check the input again:
+                if (yesOrNo == "y")
+                {
+                    claimTrip();
+                }
+                else if (yesOrNo == "n")
+                {
+                    driverScreen();
+                }
+            }
+        }
+        else if (availability == "false")
+        {
+            // Clear the vector as we won't need it:
+            addClaim.clear();
+
+            cout << "\nSorry, that trip isn't available." << endl;
+            cout << "Would you like to claim a different trip (type y or n)? ";
+            cin >> yesOrNo;
+
+            if (yesOrNo == "y")
+            {
+                claimTrip();
+            }
+            else if (yesOrNo == "n")
+            {
+                // Back to the driver screen:
+                driverScreen();
+            }
+            else
+            {
+                // Invalid input:
+                while (yesOrNo != "y" && yesOrNo != "n")
+                {
+                    cout << "\nSorry! Invalid input. Please type y or n: ";
+                    cin >> yesOrNo;
+                }
+                // When valid, check the input again:
+                if (yesOrNo == "y")
+                {
+                    claimTrip();
+                }
+                else if (yesOrNo == "n")
+                {
+                    driverScreen();
+                }
+            }
+        }
+    }
+    else
+    {
+        cout << "\nSorry, that trip doesn't exist!" << endl;
+        cout << "Would you like to claim a different trip (type y or n)? ";
+        cin >> yesOrNo;
+
+        if (yesOrNo == "y")
+        {
+            claimTrip();
+        }
+        else if (yesOrNo == "n")
+        {
+            // Back to the driver screen:
+            driverScreen();
+        }
+        else
+        {
+            // Invalid input:
+            while (yesOrNo != "y" && yesOrNo != "n")
+            {
+                cout << "\nSorry! Invalid input. Please type y or n: ";
+                cin >> yesOrNo;
+            }
+            // When valid, check the input again:
+            if (yesOrNo == "y")
+            {
+                claimTrip();
+            }
+            else if (yesOrNo == "n")
+            {
+                driverScreen();
+            }
         }
     }
 }
@@ -1341,7 +1665,134 @@ void adminLogIn()
 // Admin Logged In Screen Function:
 void adminScreen()
 {
-    cout << "\n[Insert Admin Screen Here]" << endl;
+    /* Header Section:
+     * Taxi modified from a car ASCII image "MACHO 2020" by The Animator on animasci.com
+     * License will be included with these programming files.
+     */
+    cout << endl << endl;
+    cout << "                  ---" << endl;
+    cout << "                  | |" << endl;
+    cout << "                 ....." << endl;
+    cout << "           , ,''  |    ```...___," << endl;
+    cout << "    .--  ''  P(___|_______/    (|" << endl;
+    cout << "  ( //            |             |" << endl;
+    cout << "  ` ._: ' ' :_____|______: ' ' :/" << endl;
+    cout << "      '  o  '            '  o  '" << endl;
+    cout << "        - -                - - " << endl;
+    cout << "______________________________________________" << endl;
+    cout << "______________________________________________" << endl << endl;
+
+    cout << "\nWelcome, Admin!" << endl << endl;
+
+    // Daily Driver Report:
+    cout << "\n|| Daily Driver Report ||" << endl << endl;
+
+    // Print today's date:
+    time_t now = time(0);
+    struct  tm* dt = localtime(&now);
+
+    cout << "Today's Date: " << dt->tm_mday << "/" << dt->tm_mon + 1 << "/" << dt->tm_year + 1900 << endl << endl;
+
+    // Check how many claimed trips happened today by looking in the claimed trips file:
+    driverActivityData.open("driverActivityData.txt", ios::in);
+
+    string activityLine;
+    int lineCounter = 0;
+    int numberOfTrips = 0;
+    double totalCustomerPayments = 0;
+    bool dayValid = false;
+    bool monthValid = false;
+    bool yearValid = false;
+    vector<int>endMarkers;
+    vector<double>costs;
+
+    while (getline(driverActivityData, activityLine))
+    {
+        // Count the lines:
+        lineCounter++;
+
+        // Record the locations of the end markers in a vector:
+        if (activityLine == "-----End of item-----")
+        {
+            endMarkers.push_back(lineCounter);
+        }
+    }
+    driverActivityData.close();
+    lineCounter = 0;
+
+    // For each section, check the date:
+    for (auto a = 0; a < endMarkers.size(); a++)
+    {
+        driverActivityData.open("driverActivityData.txt", ios::in);
+
+        while (getline(driverActivityData, activityLine))
+        {
+            // Count the lines:
+            lineCounter++;
+
+            if (lineCounter == (endMarkers[a]) + 4)
+            {
+                if (stoi(activityLine) == dt->tm_mday)
+                {
+                    dayValid = true;
+                }
+                else
+                {
+                    dayValid = false;
+                }
+            }
+            else if (lineCounter == (endMarkers[a]) + 3)
+            {
+                if (stoi(activityLine) == dt->tm_mon + 1)
+                {
+                    monthValid = true;
+                }
+                else
+                {
+                    monthValid = false;
+                }
+            }
+            else if (lineCounter == (endMarkers[a]) + 2)
+            {
+                if (stoi(activityLine) == dt->tm_year + 1900)
+                {
+                    yearValid = true;
+                }
+                else
+                {
+                    yearValid = false;
+                }
+            }
+            // Also, record the cost of the trip and add it to the total:
+            else if (lineCounter == (endMarkers[a]) + 1)
+            {
+                totalCustomerPayments += stod(activityLine);
+            }
+        }
+        // Close the file:
+        driverActivityData.close();
+
+        // Reset the line counter:
+        lineCounter = 0;
+
+        // If the day, month and year matches today's date, add to numberOfTrips:
+        if (dayValid == true && monthValid == true && yearValid == true)
+        {
+            numberOfTrips++;
+        }
+    }
+
+    // Print the number of trips:
+    cout << "Number of Trips Today              : " << numberOfTrips << endl << endl;
+
+    // Total paid in fares:
+    cout << "Total Driver Earnings (Gross)      : " << totalCustomerPayments << endl << endl;
+
+    // Total tax deductions (based on the average taxi driver's yearly earnings of $42,423):
+    cout << "Total Tax Deductions               : " << totalCustomerPayments * 0.152 << endl << endl;
+
+    // Net income earned by all drivers today:
+    cout << "Combined Net Earnings for Drivers  : " << totalCustomerPayments - (totalCustomerPayments * 0.152) << endl << endl;
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
