@@ -5,6 +5,7 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
+#include <cstdio>
 #include <cmath>
 #include <ctime>
 #include <string>
@@ -83,6 +84,7 @@ bool dateValidation2;
 bool *dateValidation2Ptr = &dateValidation2;
 bool dateValidation3;
 bool *dateValidation3Ptr = &dateValidation3;
+vector<int>displayedTripNumbers;
 
 // Global Variables For Admin LogIn:
 fstream adminData;
@@ -168,6 +170,7 @@ struct Trips
 };
 
 // Functions:
+void cleanUpTrips();
 void introFunction();
 string roleChoiceFunction();
 void customerLogIn();
@@ -179,6 +182,7 @@ void driverLogIn();
 void driverRegistration();
 void driverScreen();
 void claimTrip();
+void bookedTripsDisplay();
 void adminLogIn();
 void adminScreen();
 
@@ -199,8 +203,241 @@ int main()
     // Close the file:
     adminData.close();
 
+    // Clean up the trips file, deleting any trips older than a week:
+    cleanUpTrips();
+
     // Start the program with the intro:
     introFunction();
+}
+
+void cleanUpTrips()
+{
+    /* First, we'll need to calculate what the date was last week,
+     * so we'll obtain today's date...
+     */
+    time_t now = time(0);
+    struct  tm* dt = localtime(&now);
+
+    // Then set up some local variables:
+    string tripLines;
+    int currentDay = dt->tm_mday;
+    int currentMonth = dt->tm_mon + 1;
+    int currentYear = dt->tm_year + 1900;
+    int lastWeekDay = currentDay;
+    int lastWeekMonth = currentMonth;
+    int lastWeekYear = currentYear;
+    int counts = 0;
+    int multiplication = 0;
+    bool isLeap;
+    vector<Trips>cleaningVector;
+
+    // Count 7 days back, unless we reach 1:
+    while (lastWeekDay > 1 && counts < 7)
+    {
+        counts++;
+        lastWeekDay--;
+    }
+
+    // If we haven't counted 7 days, count the rest back from the last day of last month:
+    if (counts < 7)
+    {
+        // Find out what month last month was, and assign lastWeekDay accordingly:
+        if (currentMonth == 1)
+        {
+            lastWeekMonth = 12;
+            lastWeekYear = currentYear - 1;
+        }
+        else
+        {
+            lastWeekMonth = currentMonth - 1;
+        }
+        
+        switch (lastWeekMonth)
+        {
+        case 1:
+            lastWeekDay = 31;
+            break;
+        case 2:
+            // Is it currently a leap year?
+            // Check if the year is divisible by 4:
+            if (currentYear % 4 == 0)
+            {
+                // Check if the year is divisible by 100:
+                if (currentYear % 100 == 0)
+                {
+                    // Check if the year is divisible by 400:
+                    if (currentYear % 400 == 0)
+                    {
+                        isLeap = true;
+                    }
+                    else
+                    {
+                        isLeap = false;
+                    }
+                }
+                else
+                {
+                    isLeap = true;
+                }
+            }
+            else
+            {
+                isLeap = false;
+            }
+            // The day we start counting from will depend on if it's a leap year:
+            if (isLeap == true)
+            {
+                lastWeekDay = 29;
+            }
+            else if (isLeap == false)
+            {
+                lastWeekDay = 28;
+            }
+            break;
+        case 3:
+            lastWeekDay = 31;
+            break;
+        case 4:
+            lastWeekDay = 30;
+            break;
+        case 5:
+            lastWeekDay = 31;
+            break;
+        case 6:
+            lastWeekDay = 30;
+            break;
+        case 7:
+            lastWeekDay = 31;
+            break;
+        case 8:
+            lastWeekDay = 31;
+            break;
+        case 9:
+            lastWeekDay = 30;
+            break;
+        case 10:
+            lastWeekDay = 31;
+            break;
+        case 11:
+            lastWeekDay = 30;
+            break;
+        case 12:
+            lastWeekDay = 31;
+            break;
+        }
+
+        // Count the rest of the days:
+        while (counts < 7)
+        {
+            counts++;
+            lastWeekDay--;
+        }
+    }
+
+    // Reset counter so we can use it again:
+    counts = 0;
+
+    /* Now we have the date for last week!
+     * We now need to search through the trips file,
+     * and find any trips that are older than one week.
+     */
+    tripData.open("tripData.txt", ios::in);
+
+    // Create a temporary instance of the Trips structure:
+    Trips *cleaningTrips = new Trips;
+
+    while (getline(tripData, tripLines))
+    {
+        // For every first line:
+        if (counts == (multiplication * 11))
+        {
+            cleaningTrips->tripNumber = stoi(tripLines);
+        }
+        // For every second line:
+        else if (counts == (multiplication * 11) + 1)
+        {
+            cleaningTrips->customerName = tripLines;
+        }
+        // For every third line:
+        else if (counts == (multiplication * 11) + 2)
+        {
+            cleaningTrips->customerContactNumber = tripLines;
+        }
+        // For every fourth line:
+        else if (counts == (multiplication * 11) + 3)
+        {
+            cleaningTrips->startingPlace = tripLines;
+        }
+        // For every fifth line:
+        else if (counts == (multiplication * 11) + 4)
+        {
+            cleaningTrips->destination = tripLines;
+        }
+        // For every sixth line:
+        else if (counts == (multiplication * 11) + 5)
+        {
+            cleaningTrips->tripDate[0] = stoi(tripLines);
+        }
+        // For every seventh line:
+        else if (counts == (multiplication * 11) + 6)
+        {
+            cleaningTrips->tripDate[1] = stoi(tripLines);
+        }
+        // For every eighth line:
+        else if (counts == (multiplication * 11) + 7)
+        {
+            cleaningTrips->tripDate[2] = stoi(tripLines);
+        }
+        // For every ninth line:
+        else if (counts == (multiplication * 11) + 8)
+        {
+            cleaningTrips->time = tripLines;
+        }
+        // For every tenth line:
+        else if (counts == (multiplication * 11) + 9)
+        {
+            if (tripLines == "true")
+            {
+                cleaningTrips->available = true;
+            }
+            else if (tripLines == "false")
+            {
+                cleaningTrips->available = false;
+            }
+        }
+        // For every eleventh line:
+        else if (counts == (multiplication * 11) + 9)
+        {
+            // Add the instance to the vector:
+            cleaningVector.push_back(*cleaningTrips);
+
+            // Create a new instance:
+            Trips *cleaningTrips = new Trips;
+
+            multiplication++;
+        }
+        // Count the lines being read:
+        counts++;
+    }
+    // Close the file:
+    tripData.close();
+
+    // Set counter to 0:
+    counts = 0;
+
+    // Add the last instance to the vector:
+    cleaningVector.push_back(*cleaningTrips);
+
+    // And then delete it, as it will be empty:
+    cleaningVector.pop_back();
+
+    //// Now that we've stored everything in a struct, we can re-write the tripData file:
+    //tripData.open("tripData.txt", ios::out);
+
+    //for (int i; i < cleaningVector.size(); i++)
+    //{
+    //    // For each instance in the vector,
+    //}
 }
 
 void introFunction()
@@ -249,7 +486,7 @@ void introFunction()
         // Check if they already have an account or if they need to register:
         cout << "\nDo you have an account? Yes or No: ";
         string driverAccountAnswer;
-        string* driverAccountAnswerPtr = &driverAccountAnswer;
+        string *driverAccountAnswerPtr = &driverAccountAnswer;
         cin >> *driverAccountAnswerPtr;
         if (*driverAccountAnswerPtr == "Yes")
         {
@@ -882,273 +1119,13 @@ void driverScreen()
     cout << "Bank Name: " << loggedInDriver.bankName << endl;
     cout << "Bank Account Number: " << loggedInDriver.bankAccountNumber << endl << endl;
 
-    // Trips Booked Section:
-    cout << "\n|| Trips Booked By Customers ||" << endl << endl;
-
-    // Open the tripData.txt file to view the trips booked:
-    tripData.open("tripData.txt", ios::in);
-
-    // Create some local variables to read this file with:
-    string driverScreenTripLine;
-    string dayOfMonth;
-    string monthOfYear;
-    string year;
-    int convertedDayOfMonth;
-    int convertedMonthOfYear;
-    int convertedYear;
-    int driverScreenTripLineCounter = 0;
-    int driverScreenEndMarkerCounter = 0;
-
-    /* We're going to be comparing the trips' dates with the current date
-     * to see if any are in the past, as we don't want to print these.
-     */
-    time_t now = time(0);
-    struct  tm* dt = localtime(&now);
-
-    /* Now create a linked list of all the trips in the file,
-     * starting with the 'headNode':
-     */
-    Trips *headTrip = new Trips;
-    while (getline(tripData, driverScreenTripLine))
-    {
-        // Count the number of lines being read:
-        driverScreenTripLineCounter++;
-
-        switch (driverScreenTripLineCounter)
-        {
-        case 1:
-            headTrip->tripNumber = stoi(driverScreenTripLine);
-            break;
-        case 2:
-            headTrip->customerName = driverScreenTripLine;
-            break;
-        case 3:
-            headTrip->customerContactNumber = driverScreenTripLine;
-            break;
-        case 4:
-            headTrip->startingPlace = driverScreenTripLine;
-            break;
-        case 5:
-            headTrip->destination = driverScreenTripLine;
-            break;
-        case 6:
-            headTrip->tripDate[0] = stoi(driverScreenTripLine);
-            break;
-        case 7:
-            headTrip->tripDate[1] = stoi(driverScreenTripLine);
-            break;
-        case 8:
-            headTrip->tripDate[2] = stoi(driverScreenTripLine);
-            break;
-        case 9:
-            headTrip->time = driverScreenTripLine;
-            break;
-        case 10:
-            if (driverScreenTripLine == "true")
-            {
-                headTrip->available = true;
-            }
-            else if (driverScreenTripLine == "false")
-            {
-                headTrip->available = false;
-            }
-        }
-
-        // Count the number of end markers:
-        if (driverScreenTripLine == "-----End of item-----")
-        {
-            driverScreenEndMarkerCounter++;
-        }
-    }
-    // Close the file:
-    tripData.close();
-
-    // Check if the date is in the past, starting with the year:
-    if (headTrip->tripDate[2] < (dt->tm_year + 1900))
-    {
-        headTrip->past = true;
-    }
-    else
-    {
-        // Check the month:
-        if (headTrip->tripDate[2] == (dt->tm_year + 1900) && headTrip->tripDate[1] < (dt->tm_mon + 1))
-        {
-            headTrip->past = true;
-        }
-        else
-        {
-            // Check the day:
-            if (headTrip->tripDate[2] == (dt->tm_year + 1900) && headTrip->tripDate[1] == (dt->tm_mon + 1) && headTrip->tripDate[0] < dt->tm_mday)
-            {
-                headTrip->past = true;
-            }
-            else
-            {
-                headTrip->past = false;
-            }
-        }
-    }
-
-    // Set the head node's next position to NULL:
-    headTrip->nextPosition = NULL;
-
-    // Create the previous node as the headNode:
-    Trips *previousTrip = headTrip;
-
-    /* Each item in the data file takes up 11 lines(including the end marker)
-     * so, if we add 11 to the line counter each time we reach a new node, 
-     * we'll be able to obtain the onformation we need:
-     */
-    int addEleven = 0;
-
-    // Start from the second node:
-    for (int i = 1; i < driverScreenEndMarkerCounter; i++)
-    {
-        Trips *newTrip = new Trips;
-
-        // Set the line counter to zero:
-        driverScreenTripLineCounter = 0;
-
-        // Add eleven:
-        addEleven += 11;
-
-        // Re-open the tripData.txt file and look for the next set of trip details:
-        tripData.open("tripData.txt", ios::in);
-
-        while (getline(tripData, driverScreenTripLine))
-        {
-            // Count the number of lines being read:
-            driverScreenTripLineCounter++;
-
-            if (driverScreenTripLineCounter == 1 + addEleven)
-            {
-                newTrip->tripNumber = stoi(driverScreenTripLine);
-            }
-            else if (driverScreenTripLineCounter == 2 + addEleven)
-            {
-                newTrip->customerName = driverScreenTripLine;
-            }
-            else if (driverScreenTripLineCounter == 3 + addEleven)
-            {
-                newTrip->customerContactNumber = driverScreenTripLine;
-            }
-            else if (driverScreenTripLineCounter == 4 + addEleven)
-            {
-                newTrip->startingPlace = driverScreenTripLine;
-            }
-            else if (driverScreenTripLineCounter == 5 + addEleven)
-            {
-                newTrip->destination = driverScreenTripLine;
-            }
-            else if (driverScreenTripLineCounter == 6 + addEleven)
-            {
-                newTrip->tripDate[0] = stoi(driverScreenTripLine);
-            }
-            else if (driverScreenTripLineCounter == 7 + addEleven)
-            {
-                newTrip->tripDate[1] = stoi(driverScreenTripLine);
-            }
-            else if (driverScreenTripLineCounter == 8 + addEleven)
-            {
-                newTrip->tripDate[2] = stoi(driverScreenTripLine);
-            }
-            else if (driverScreenTripLineCounter == 9 + addEleven)
-            {
-                newTrip->time = driverScreenTripLine;
-            }
-            else if (driverScreenTripLineCounter == 10 + addEleven)
-            {
-                if (driverScreenTripLine == "true")
-                {
-                    newTrip->available = true;
-                }
-                else if (driverScreenTripLine == "false")
-                {
-                    newTrip->available = false;
-                }
-            }
-        }
-        // Close the file:
-        tripData.close();
-
-        // Check if the date is in the past, starting with the year:
-        if (newTrip->tripDate[2] < (dt->tm_year + 1900))
-        {
-            newTrip->past = true;
-        }
-        else
-        {
-            // Check the month:
-            if (newTrip->tripDate[2] == (dt->tm_year + 1900) && newTrip->tripDate[1] < (dt->tm_mon + 1))
-            {
-                newTrip->past = true;
-            }
-            else
-            {
-                // Check the day:
-                if (newTrip->tripDate[2] == (dt->tm_year + 1900) && newTrip->tripDate[1] == (dt->tm_mon + 1) && newTrip->tripDate[0] < dt->tm_mday)
-                {
-                    newTrip->past = true;
-                }
-                else
-                {
-                    newTrip->past = false;
-                }
-            }
-        }
-
-        // Set the node's next position to NULL:
-        newTrip->nextPosition = NULL;
-
-        // Set the connection between the last node and the current node:
-        previousTrip->nextPosition = newTrip;
-
-        // Replace the values of the previous node with those of the current node:
-        previousTrip = newTrip;
-    }
-
-    // Print out all of the trips booked, unless they are in the past:
-    Trips *temporaryTrip = headTrip;
-
-    while (temporaryTrip != NULL)
-    {
-        if (temporaryTrip->past == false)
-        {
-            cout << "Trip Number: " << temporaryTrip->tripNumber << endl;
-            cout << "Customer Name: " << temporaryTrip->customerName << endl;
-            cout << "Contact Number: " << temporaryTrip->customerContactNumber << endl;
-            cout << "Starting Place: " << temporaryTrip->startingPlace << endl;
-            cout << "Destination: " << temporaryTrip->destination << endl;
-            cout << "Trip Date: " << temporaryTrip->tripDate[0] << "/" << temporaryTrip->tripDate[1] << "/" << temporaryTrip->tripDate[2] << endl;
-            cout << "Trip Time: " << temporaryTrip->time << endl;
-            cout << "Availability: ";
-            if (temporaryTrip->available == true)
-            {
-                cout << "Available" << endl;
-            }
-            else if (temporaryTrip->available == false)
-            {
-                cout << "Unavailable" << endl;
-            }
-
-            // Create a space before the next trip:
-            cout << endl;
-        }
-
-        // Retrieve the next node:
-        temporaryTrip = temporaryTrip->nextPosition;
-    }
-
-    // Delete the linked list to avoid a memory leak:
-    while (headTrip != NULL)
-    {
-        Trips *tempNode = headTrip;
-        headTrip = tempNode->nextPosition;
-        delete(tempNode);
-    }
+    bookedTripsDisplay();
 
     // Report Section:
     cout << "\n\n|| Daily Report ||" << endl << endl;
+
+    time_t now = time(0);
+    struct  tm* dt = localtime(&now);
 
     // To print out today's date...
     cout << "Today's Date: " << dt->tm_mday << "/" << dt->tm_mon + 1 << "/" << dt->tm_year + 1900 << endl << endl;
@@ -1263,17 +1240,17 @@ void driverScreen()
     cout << "Tax Amount: " << sumOfCosts * 0.152 << endl << endl;
 
     // Give the user some options to move forward:
-    cout << "Would you like to claim a trip (type: claim), or log out (type: log out)? ";
-    string driverScreenEndOption;
-    getline(cin, driverScreenEndOption);
+    cout << "Would you like to claim a trip (type: 1), or log out (type: 2)? ";
+    int claimOrLogOut;
+    cin >> claimOrLogOut;
 
     // Acting on the user's input:
-    if (driverScreenEndOption == "claim")
+    if (claimOrLogOut == 1)
     {
         // Claim a trip:
         claimTrip();
     }
-    else if (driverScreenEndOption == "log out")
+    else if (claimOrLogOut == 2)
     {
         cout << endl;
 
@@ -1285,24 +1262,24 @@ void driverScreen()
     }
     else
     {
-        // Fixing a missed inputs bug:
-        cin.ignore();
-
-        while (driverScreenEndOption != "claim" && driverScreenEndOption != "log out")
+        while (claimOrLogOut != 1 && claimOrLogOut != 2)
         {
             cout << "\nSorry! You have entered an invalid option. Please try again." << endl;
             cout << "What would you like to do? ";
-            getline(cin, driverScreenEndOption);
+            cin >> claimOrLogOut;
         }
         // Once the input is valid, act on it:
-        if (driverScreenEndOption == "claim")
+        if (claimOrLogOut == 1)
         {
             // Claim a trip:
             claimTrip();
         }
-        else if (driverScreenEndOption == "log out")
+        else if (claimOrLogOut == 2)
         {
             cout << endl;
+
+            // Delete the struct instances in the vector so as to avoid a memory leak:
+            activityEmailLine.clear();
 
             // Send the user back to the starting screen:
             introFunction();
@@ -1319,7 +1296,7 @@ void claimTrip()
     string tripLine;
     int lineCount = 0;
     int counting = 0;
-    int multiply = 0;
+    bool tripFound = false;
     vector<string>addClaim;
     vector<string>trips;
 
@@ -1327,20 +1304,17 @@ void claimTrip()
     cout << "Trip Number: ";
     cin >> *tripToClaimPtr;
 
-    // First check if this trip exists:
-    tripData.open("tripData.txt", ios::in);
-
-    while (getline(tripData, tripLine))
+    // First check if this trip exists and isn't in the past:
+    for (int i = 0; i < displayedTripNumbers.size(); i++)
     {
-        lineCount++;
+        // Look for the trip number in the displayed trips vector:
+        if (*tripToClaimPtr == i)
+        {
+            tripFound = true;
+        }
     }
-    tripData.close();
 
-    /* Since there are 11 lines in each collection of data on trips,
-     * and since these trips' trip numbers are assigned in order,
-     * we can use math to figure out if this trip exists or not.
-     */
-    if (lineCount >= (*tripToClaimPtr * 11))
+    if (tripFound == true)
     {
         // Then the trip exists, and we now have to read it to see if it's available:
         tripData.open("tripData.txt", ios::in);
@@ -1447,81 +1421,11 @@ void claimTrip()
             tripData.close();
             counting = 0;
 
-            // Re-print the trips:
-            cout << "\n\n\n|| Trips Booked By Customers ||" << endl << endl;
+            // Re-print the booked trips:
+            bookedTripsDisplay();
 
-            // Using math to tell where to print different items (11 lines per trip):
-            for (int i = 0; i < trips.size(); i++)
-            {
-                // For every first line:
-                if (i == (multiply * 11))
-                {
-                    cout << "Trip Number: " << trips[i] << endl;
-                }
-                // For every second line:
-                else if (i == (multiply * 11) + 1)
-                {
-                    cout << "Customer Name: " << trips[i] << endl;
-                }
-                // For every third line:
-                else if (i == (multiply * 11) + 2)
-                {
-                    cout << "Contact Number: " << trips[i] << endl;
-                }
-                // For every fourth line:
-                else if (i == (multiply * 11) + 3)
-                {
-                    cout << "Starting Place: " << trips[i] << endl;
-                }
-                // For every fifth line:
-                else if (i == (multiply * 11) + 4)
-                {
-                    cout << "Destination: " << trips[i] << endl;
-                }
-                // For every sixth line:
-                else if (i == (multiply * 11) + 5)
-                {
-                    cout << "Trip Date: " << trips[i] << "/";
-                }
-                // For every seventh line:
-                else if (i == (multiply * 11) + 6)
-                {
-                    cout << trips[i] << "/";
-                }
-                // For every eighth line:
-                else if (i == (multiply * 11) + 7)
-                {
-                    cout << trips[i] << endl;
-                }
-                // For every ninth line:
-                else if (i == (multiply * 11) + 8)
-                {
-                    cout << "Trip Time: " << trips[i] << endl;
-                }
-                // For every tenth line:
-                else if (i == (multiply * 11) + 9)
-                {
-                    cout << "Availability: ";
-                    if (trips[i] == "true")
-                    {
-                        cout << "Available" << endl;
-                    }
-                    else if (trips[i] == "false")
-                    {
-                        cout << "Unavailable" << endl;
-                    }
-                }
-                // For every eleventh line:
-                else if (i == (multiply * 11) + 10)
-                {
-                    // Leave a space before the next trip:
-                    cout << endl;
-                    multiply++;
-                }
-            }
-            // Clear the vector, reset multiply:
+            // Clear the vector:
             trips.clear();
-            multiply = 0;
 
             // Ask the user if they would like to claim another trip:
             cout << "\n\nWould you like to claim another trip (type y or n)? ";
@@ -1626,6 +1530,278 @@ void claimTrip()
                 driverScreen();
             }
         }
+    }
+}
+
+// Booked Trips Display Section:
+void bookedTripsDisplay()
+{
+    // Trips Booked Section:
+    cout << "\n|| Trips Booked By Customers ||" << endl << endl;
+
+    // Open the tripData.txt file to view the trips booked:
+    tripData.open("tripData.txt", ios::in);
+
+    // Create some local variables to read this file with:
+    string driverScreenTripLine;
+    string dayOfMonth;
+    string monthOfYear;
+    string year;
+    int convertedDayOfMonth;
+    int convertedMonthOfYear;
+    int convertedYear;
+    int driverScreenTripLineCounter = 0;
+    int driverScreenEndMarkerCounter = 0;
+
+    /* We're going to be comparing the trips' dates with the current date
+     * to see if any are in the past, as we don't want to print these.
+     */
+    time_t now = time(0);
+    struct  tm* dt = localtime(&now);
+
+    /* Now create a linked list of all the trips in the file,
+     * starting with the 'headNode':
+     */
+    Trips* headTrip = new Trips;
+    while (getline(tripData, driverScreenTripLine))
+    {
+        // Count the number of lines being read:
+        driverScreenTripLineCounter++;
+
+        switch (driverScreenTripLineCounter)
+        {
+        case 1:
+            headTrip->tripNumber = stoi(driverScreenTripLine);
+            break;
+        case 2:
+            headTrip->customerName = driverScreenTripLine;
+            break;
+        case 3:
+            headTrip->customerContactNumber = driverScreenTripLine;
+            break;
+        case 4:
+            headTrip->startingPlace = driverScreenTripLine;
+            break;
+        case 5:
+            headTrip->destination = driverScreenTripLine;
+            break;
+        case 6:
+            headTrip->tripDate[0] = stoi(driverScreenTripLine);
+            break;
+        case 7:
+            headTrip->tripDate[1] = stoi(driverScreenTripLine);
+            break;
+        case 8:
+            headTrip->tripDate[2] = stoi(driverScreenTripLine);
+            break;
+        case 9:
+            headTrip->time = driverScreenTripLine;
+            break;
+        case 10:
+            if (driverScreenTripLine == "true")
+            {
+                headTrip->available = true;
+            }
+            else if (driverScreenTripLine == "false")
+            {
+                headTrip->available = false;
+            }
+        }
+
+        // Count the number of end markers:
+        if (driverScreenTripLine == "-----End of item-----")
+        {
+            driverScreenEndMarkerCounter++;
+        }
+    }
+    // Close the file:
+    tripData.close();
+
+    // Check if the date is in the past, starting with the year:
+    if (headTrip->tripDate[2] < (dt->tm_year + 1900))
+    {
+        headTrip->past = true;
+    }
+    else
+    {
+        // Check the month:
+        if (headTrip->tripDate[2] == (dt->tm_year + 1900) && headTrip->tripDate[1] < (dt->tm_mon + 1))
+        {
+            headTrip->past = true;
+        }
+        else
+        {
+            // Check the day:
+            if (headTrip->tripDate[2] == (dt->tm_year + 1900) && headTrip->tripDate[1] == (dt->tm_mon + 1) && headTrip->tripDate[0] < dt->tm_mday)
+            {
+                headTrip->past = true;
+            }
+            else
+            {
+                headTrip->past = false;
+            }
+        }
+    }
+
+    // Set the head node's next position to NULL:
+    headTrip->nextPosition = NULL;
+
+    // Create the previous node as the headNode:
+    Trips* previousTrip = headTrip;
+
+    /* Each item in the data file takes up 11 lines(including the end marker)
+     * so, if we add 11 to the line counter each time we reach a new node,
+     * we'll be able to obtain the onformation we need:
+     */
+    int addEleven = 0;
+
+    // Start from the second node:
+    for (int i = 1; i < driverScreenEndMarkerCounter; i++)
+    {
+        Trips* newTrip = new Trips;
+
+        // Set the line counter to zero:
+        driverScreenTripLineCounter = 0;
+
+        // Add eleven:
+        addEleven += 11;
+
+        // Re-open the tripData.txt file and look for the next set of trip details:
+        tripData.open("tripData.txt", ios::in);
+
+        while (getline(tripData, driverScreenTripLine))
+        {
+            // Count the number of lines being read:
+            driverScreenTripLineCounter++;
+
+            if (driverScreenTripLineCounter == 1 + addEleven)
+            {
+                newTrip->tripNumber = stoi(driverScreenTripLine);
+            }
+            else if (driverScreenTripLineCounter == 2 + addEleven)
+            {
+                newTrip->customerName = driverScreenTripLine;
+            }
+            else if (driverScreenTripLineCounter == 3 + addEleven)
+            {
+                newTrip->customerContactNumber = driverScreenTripLine;
+            }
+            else if (driverScreenTripLineCounter == 4 + addEleven)
+            {
+                newTrip->startingPlace = driverScreenTripLine;
+            }
+            else if (driverScreenTripLineCounter == 5 + addEleven)
+            {
+                newTrip->destination = driverScreenTripLine;
+            }
+            else if (driverScreenTripLineCounter == 6 + addEleven)
+            {
+                newTrip->tripDate[0] = stoi(driverScreenTripLine);
+            }
+            else if (driverScreenTripLineCounter == 7 + addEleven)
+            {
+                newTrip->tripDate[1] = stoi(driverScreenTripLine);
+            }
+            else if (driverScreenTripLineCounter == 8 + addEleven)
+            {
+                newTrip->tripDate[2] = stoi(driverScreenTripLine);
+            }
+            else if (driverScreenTripLineCounter == 9 + addEleven)
+            {
+                newTrip->time = driverScreenTripLine;
+            }
+            else if (driverScreenTripLineCounter == 10 + addEleven)
+            {
+                if (driverScreenTripLine == "true")
+                {
+                    newTrip->available = true;
+                }
+                else if (driverScreenTripLine == "false")
+                {
+                    newTrip->available = false;
+                }
+            }
+        }
+        // Close the file:
+        tripData.close();
+
+        // Check if the date is in the past, starting with the year:
+        if (newTrip->tripDate[2] < (dt->tm_year + 1900))
+        {
+            newTrip->past = true;
+        }
+        else
+        {
+            // Check the month:
+            if (newTrip->tripDate[2] == (dt->tm_year + 1900) && newTrip->tripDate[1] < (dt->tm_mon + 1))
+            {
+                newTrip->past = true;
+            }
+            else
+            {
+                // Check the day:
+                if (newTrip->tripDate[2] == (dt->tm_year + 1900) && newTrip->tripDate[1] == (dt->tm_mon + 1) && newTrip->tripDate[0] < dt->tm_mday)
+                {
+                    newTrip->past = true;
+                }
+                else
+                {
+                    newTrip->past = false;
+                }
+            }
+        }
+
+        // Set the node's next position to NULL:
+        newTrip->nextPosition = NULL;
+
+        // Set the connection between the last node and the current node:
+        previousTrip->nextPosition = newTrip;
+
+        // Replace the values of the previous node with those of the current node:
+        previousTrip = newTrip;
+    }
+
+    // Print out all of the trips booked, unless they are in the past:
+    Trips* temporaryTrip = headTrip;
+
+    while (temporaryTrip != NULL)
+    {
+        if (temporaryTrip->past == false)
+        {
+            cout << "Trip Number: " << temporaryTrip->tripNumber << endl;
+            cout << "Customer Name: " << temporaryTrip->customerName << endl;
+            cout << "Contact Number: " << temporaryTrip->customerContactNumber << endl;
+            cout << "Starting Place: " << temporaryTrip->startingPlace << endl;
+            cout << "Destination: " << temporaryTrip->destination << endl;
+            cout << "Trip Date: " << temporaryTrip->tripDate[0] << "/" << temporaryTrip->tripDate[1] << "/" << temporaryTrip->tripDate[2] << endl;
+            cout << "Trip Time: " << temporaryTrip->time << endl;
+            cout << "Availability: ";
+            if (temporaryTrip->available == true)
+            {
+                cout << "Available" << endl;
+            }
+            else if (temporaryTrip->available == false)
+            {
+                cout << "Unavailable" << endl;
+            }
+
+            // Create a space before the next trip:
+            cout << endl;
+
+            // If the trip is not in the past, list its trip number in the appropriate vector:
+            displayedTripNumbers.push_back(temporaryTrip->tripNumber);
+        }
+
+        // Retrieve the next node:
+        temporaryTrip = temporaryTrip->nextPosition;
+    }
+
+    // Delete the linked list to avoid a memory leak:
+    while (headTrip != NULL)
+    {
+        Trips* tempNode = headTrip;
+        headTrip = tempNode->nextPosition;
+        delete(tempNode);
     }
 }
 

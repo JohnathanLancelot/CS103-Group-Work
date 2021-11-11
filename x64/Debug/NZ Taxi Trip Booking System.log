@@ -1,6 +1,6 @@
 ﻿  NZ Taxi Trip Booking System.cpp
-C:\Users\User\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(897,9): warning C4101: 'convertedMonthOfYear': unreferenced local variable
-C:\Users\User\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(896,9): warning C4101: 'convertedDayOfMonth': unreferenced local variable
-C:\Users\User\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(898,9): warning C4101: 'convertedYear': unreferenced local variable
-C:\Users\User\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(306): warning C4715: 'roleChoiceFunction': not all control paths return a value
+C:\Users\User\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(1551,9): warning C4101: 'convertedMonthOfYear': unreferenced local variable
+C:\Users\User\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(1550,9): warning C4101: 'convertedDayOfMonth': unreferenced local variable
+C:\Users\User\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(1552,9): warning C4101: 'convertedYear': unreferenced local variable
+C:\Users\User\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(543): warning C4715: 'roleChoiceFunction': not all control paths return a value
   NZ Taxi Trip Booking System.vcxproj -> C:\Users\User\CS103-Group-Work\x64\Debug\NZ Taxi Trip Booking System.exe
