@@ -229,6 +229,7 @@ void cleanUpTrips()
     int counts = 0;
     int multiplication = 0;
     bool isLeap;
+    bool tooOld;
     vector<Trips>cleaningVector;
 
     // Count 7 days back, unless we reach 1:
@@ -406,7 +407,7 @@ void cleanUpTrips()
             }
         }
         // For every eleventh line:
-        else if (counts == (multiplication * 11) + 9)
+        else if (counts == (multiplication * 11) + 10)
         {
             // Add the instance to the vector:
             cleaningVector.push_back(*cleaningTrips);
@@ -431,13 +432,63 @@ void cleanUpTrips()
     // And then delete it, as it will be empty:
     cleaningVector.pop_back();
 
-    //// Now that we've stored everything in a struct, we can re-write the tripData file:
-    //tripData.open("tripData.txt", ios::out);
+    // Now that we've stored everything in a struct, we can re-write the tripData file:
+    tripData.open("tripData.txt", ios::out);
 
-    //for (int i; i < cleaningVector.size(); i++)
-    //{
-    //    // For each instance in the vector,
-    //}
+    for (int i = 0; i < cleaningVector.size(); i++)
+    {
+        /* For each instance in the vector, find out if the date is more than a week ago
+         * and only print the contents if the date is more recent.
+         */
+        if (cleaningVector[i].tripDate[2] < lastWeekYear)
+        {
+            tooOld = true;
+        }
+        else
+        {
+            // If the year isn't too far back, check the month:
+            if (cleaningVector[i].tripDate[2] == lastWeekYear && cleaningVector[i].tripDate[1] < lastWeekMonth)
+            {
+                tooOld = true;
+            }
+            else
+            {
+                // If the month isn't too far back, check the day:
+                if (cleaningVector[i].tripDate[2] == lastWeekYear && cleaningVector[i].tripDate[1] == lastWeekMonth && cleaningVector[i].tripDate[0] < lastWeekDay)
+                {
+                    tooOld = true;
+                }
+                else
+                {
+                    tooOld = false;
+                }
+            }
+        }
+        // Only print if tooOld is false:
+        if (tooOld == false)
+        {
+            tripData << cleaningVector[i].tripNumber << endl;
+            tripData << cleaningVector[i].customerName << endl;
+            tripData << cleaningVector[i].customerContactNumber << endl;
+            tripData << cleaningVector[i].startingPlace << endl;
+            tripData << cleaningVector[i].destination << endl;
+            tripData << cleaningVector[i].tripDate[0] << endl;
+            tripData << cleaningVector[i].tripDate[1] << endl;
+            tripData << cleaningVector[i].tripDate[2] << endl;
+            tripData << cleaningVector[i].time << endl;
+            if (cleaningVector[i].available == true)
+            {
+                tripData << "true" << endl;
+            }
+            else if (cleaningVector[i].available == false)
+            {
+                tripData << "false" << endl;
+            }
+            tripData << "-----End of item-----" << endl;
+        }
+    }
+    // Close the file:
+    tripData.close();
 }
 
 void introFunction()
