@@ -45,7 +45,19 @@ void introFunction()
 
     // Placeholder for the intro screen:
     cout << "[intro screen]" << endl << endl;
-
+    cout << endl << endl;
+    cout << "                  ---" << endl;
+    cout << "                  | |" << endl;
+    cout << "                 ....." << endl;
+    cout << "           , ,''  |    ```...___," << endl;
+    cout << "    .--  ''  P(___|_______/    (|" << endl;
+    cout << "  ( //            |             |" << endl;
+    cout << "  ` ._: ' ' :_____|______: ' ' :/" << endl;
+    cout << "      '  o  '            '  o  '" << endl;
+    cout << "        - -                - - " << endl;
+    cout << " _____________________________________________" << endl;
+    cout << " ___________Welcome to NZ Taxi~!______________" << endl 
+    cout << " _____________________________________________" << endl << endl;
     // Use a function to determine the user's role:
     roleChoiceFunction();
 
