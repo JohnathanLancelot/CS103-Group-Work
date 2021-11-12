@@ -19,6 +19,12 @@ using namespace std;
 fstream tripData;
 string roleChoice;
 string *roleChoicePtr = &roleChoice;
+int lastWeekDay;
+int lastWeekMonth;
+int lastWeekYear;
+int *lastWeekDayPtr = &lastWeekDay;
+int *lastWeekMonthPtr = &lastWeekMonth;
+int *lastWeekYearPtr = &lastWeekYear;
 
 // Global Variables For Customer Screen:
 double costPerKm = 2.60;
@@ -147,7 +153,7 @@ struct ClaimedTrips
     bool validDate1 = false;
     bool validDate2 = false;
     bool validDate3 = false;
-    int emailLine;
+    int emailLine = 0;
 };
 
 // PLACEHOLDER TRIP BOOKING STRUCT:
@@ -161,7 +167,7 @@ struct Trips
     int tripDate[3] = { 0,0,0 };
     string time;
     bool available = true;
-    Trips *nextPosition;
+    Trips *nextPosition = NULL;
 
     /* This will help us only print the trips booked
      * for the present or future.
@@ -223,9 +229,6 @@ void cleanUpTrips()
     int currentDay = dt->tm_mday;
     int currentMonth = dt->tm_mon + 1;
     int currentYear = dt->tm_year + 1900;
-    int lastWeekDay = currentDay;
-    int lastWeekMonth = currentMonth;
-    int lastWeekYear = currentYear;
     int counts = 0;
     int multiplication = 0;
     bool isLeap;
@@ -234,8 +237,13 @@ void cleanUpTrips()
     vector<ClaimedTrips>cleaningVector2;
     vector<int>cleaningEndMarkers;
 
+    // Start the dates off as the same:
+    *lastWeekDayPtr = currentDay;
+    *lastWeekMonthPtr = currentMonth;
+    *lastWeekYearPtr = currentYear;
+
     // Count 7 days back, unless we reach 1:
-    while (lastWeekDay > 1 && counts < 7)
+    while (*lastWeekDayPtr > 1 && counts < 7)
     {
         counts++;
         lastWeekDay--;
@@ -247,18 +255,18 @@ void cleanUpTrips()
         // Find out what month last month was, and assign lastWeekDay accordingly:
         if (currentMonth == 1)
         {
-            lastWeekMonth = 12;
-            lastWeekYear = currentYear - 1;
+            *lastWeekMonthPtr = 12;
+            *lastWeekYearPtr = currentYear - 1;
         }
         else
         {
-            lastWeekMonth = currentMonth - 1;
+            *lastWeekMonthPtr = currentMonth - 1;
         }
         
-        switch (lastWeekMonth)
+        switch (*lastWeekMonthPtr)
         {
         case 1:
-            lastWeekDay = 31;
+            *lastWeekDayPtr = 31;
             break;
         case 2:
             // Is it currently a leap year?
@@ -290,42 +298,42 @@ void cleanUpTrips()
             // The day we start counting from will depend on if it's a leap year:
             if (isLeap == true)
             {
-                lastWeekDay = 29;
+                *lastWeekDayPtr = 29;
             }
             else if (isLeap == false)
             {
-                lastWeekDay = 28;
+                *lastWeekDayPtr = 28;
             }
             break;
         case 3:
-            lastWeekDay = 31;
+            *lastWeekDayPtr = 31;
             break;
         case 4:
-            lastWeekDay = 30;
+            *lastWeekDayPtr = 30;
             break;
         case 5:
-            lastWeekDay = 31;
+            *lastWeekDayPtr = 31;
             break;
         case 6:
-            lastWeekDay = 30;
+            *lastWeekDayPtr = 30;
             break;
         case 7:
-            lastWeekDay = 31;
+            *lastWeekDayPtr = 31;
             break;
         case 8:
-            lastWeekDay = 31;
+            *lastWeekDayPtr = 31;
             break;
         case 9:
-            lastWeekDay = 30;
+            *lastWeekDayPtr = 30;
             break;
         case 10:
-            lastWeekDay = 31;
+            *lastWeekDayPtr = 31;
             break;
         case 11:
-            lastWeekDay = 30;
+            *lastWeekDayPtr = 30;
             break;
         case 12:
-            lastWeekDay = 31;
+            *lastWeekDayPtr = 31;
             break;
         }
 
@@ -439,21 +447,21 @@ void cleanUpTrips()
         /* For each instance in the vector, find out if the date is more than a week ago
          * and only print the contents if the date is more recent.
          */
-        if (cleaningVector[i].tripDate[2] < lastWeekYear)
+        if (cleaningVector[i].tripDate[2] < *lastWeekYearPtr)
         {
             tooOld = true;
         }
         else
         {
             // If the year isn't too far back, check the month:
-            if (cleaningVector[i].tripDate[2] == lastWeekYear && cleaningVector[i].tripDate[1] < lastWeekMonth)
+            if (cleaningVector[i].tripDate[2] == *lastWeekYearPtr && cleaningVector[i].tripDate[1] < *lastWeekMonthPtr)
             {
                 tooOld = true;
             }
             else
             {
                 // If the month isn't too far back, check the day:
-                if (cleaningVector[i].tripDate[2] == lastWeekYear && cleaningVector[i].tripDate[1] == lastWeekMonth && cleaningVector[i].tripDate[0] < lastWeekDay)
+                if (cleaningVector[i].tripDate[2] == *lastWeekYearPtr && cleaningVector[i].tripDate[1] == *lastWeekMonthPtr && cleaningVector[i].tripDate[0] < *lastWeekDayPtr)
                 {
                     tooOld = true;
                 }
@@ -500,7 +508,7 @@ void cleanUpTrips()
     counts = 0;
 
     // First, lets look for end markers in the driverActivityData file:
-    driverActivityData.open("driverActivityData.txt", ios::in);
+    //driverActivityData.open("driverActivityData.txt", ios::in);
 
     while (getline(driverActivityData, tripLines))
     {
@@ -586,21 +594,21 @@ void cleanUpTrips()
         /* For each instance in the vector, find out if the date is more than a week ago
          * and only print the contents if the date is more recent.
          */
-        if (cleaningVector2[i].year < lastWeekYear)
+        if (cleaningVector2[i].year < *lastWeekYearPtr)
         {
             tooOld = true;
         }
         else
         {
             // If the year isn't too far back, check the month:
-            if (cleaningVector2[i].year == lastWeekYear && cleaningVector2[i].month < lastWeekMonth)
+            if (cleaningVector2[i].year == *lastWeekYearPtr && cleaningVector2[i].month < *lastWeekMonthPtr)
             {
                 tooOld = true;
             }
             else
             {
                 // If the month isn't too far back, check the day:
-                if (cleaningVector2[i].year == lastWeekYear && cleaningVector2[i].month == lastWeekMonth && cleaningVector2[i].day < lastWeekDay)
+                if (cleaningVector2[i].year == *lastWeekYearPtr && cleaningVector2[i].month == *lastWeekMonthPtr && cleaningVector2[i].day < *lastWeekDayPtr)
                 {
                     tooOld = true;
                 }
@@ -2161,8 +2169,9 @@ void adminScreen()
             // Count the lines:
             lineCounter++;
 
-            if (lineCounter == (endMarkers[a]) + 4)
+            if (lineCounter == (endMarkers[a]) - 4)
             {
+                // Day:
                 if (stoi(activityLine) == dt->tm_mday)
                 {
                     dayValid = true;
@@ -2172,8 +2181,9 @@ void adminScreen()
                     dayValid = false;
                 }
             }
-            else if (lineCounter == (endMarkers[a]) + 3)
+            else if (lineCounter == (endMarkers[a]) - 3)
             {
+                // Month:
                 if (stoi(activityLine) == dt->tm_mon + 1)
                 {
                     monthValid = true;
@@ -2183,8 +2193,9 @@ void adminScreen()
                     monthValid = false;
                 }
             }
-            else if (lineCounter == (endMarkers[a]) + 2)
+            else if (lineCounter == (endMarkers[a]) - 2)
             {
+                // Year:
                 if (stoi(activityLine) == dt->tm_year + 1900)
                 {
                     yearValid = true;
@@ -2195,7 +2206,7 @@ void adminScreen()
                 }
             }
             // Also, record the cost of the trip and add it to the total:
-            else if (lineCounter == (endMarkers[a]) + 1)
+            else if (lineCounter == (endMarkers[a]) - 1)
             {
                 totalCustomerPayments += stod(activityLine);
             }
@@ -2214,16 +2225,28 @@ void adminScreen()
     }
 
     // Print the number of trips:
-    cout << "Number of Trips Today              : " << numberOfTrips << endl << endl;
+    cout << "Number of Trips Today              : " << numberOfTrips << endl;
 
     // Total paid in fares:
-    cout << "Total Driver Earnings (Gross)      : " << totalCustomerPayments << endl << endl;
+    cout << "Total Driver Earnings (Gross)      : " << totalCustomerPayments << endl;
 
     // Total tax deductions (based on the average taxi driver's yearly earnings of $42,423):
-    cout << "Total Tax Deductions               : " << totalCustomerPayments * 0.152 << endl << endl;
+    cout << "Total Tax Deductions               : " << totalCustomerPayments * 0.152 << endl;
 
     // Net income earned by all drivers today:
     cout << "Combined Net Earnings for Drivers  : " << totalCustomerPayments - (totalCustomerPayments * 0.152) << endl << endl;
+
+    // Weekly Driver Report:
+    cout << "\n|| Daily Driver Report ||" << endl << endl;
+
+    cout << "Date: From " << *lastWeekDayPtr << "/" << *lastWeekMonthPtr << "/" << *lastWeekYearPtr << " to " << dt->tm_mday << "/" << dt->tm_mon + 1 << "/" << dt->tm_year + 1900 << endl << endl;
+
+    /* Check how many claimed trips happened in the past week by looking in the claimed 
+     * trips file.
+     * Because we delete any trips older than a week using the cleaningUpTrips() function,
+     * we just need to check for trips that aren't in the future.
+     */
+    /*driverActivityData.open("driverActivityData.txt", ios::in);*/
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
