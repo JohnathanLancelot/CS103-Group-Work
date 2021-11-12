@@ -1,13 +1,12 @@
-
 adrima@gmail.com
-11
+12
 11
 2021
-11.10
+10.3
 -----End of item-----
 adrima@gmail.com
-11
+5
 11
 2021
-12.34
+10.3
 -----End of item-----

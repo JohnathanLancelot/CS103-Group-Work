@@ -143,7 +143,7 @@ struct ClaimedTrips
     int day = 0;
     int month = 0;
     int year = 0;
-    double cost = 0;
+    double cost = 0.00;
     bool validDate1 = false;
     bool validDate2 = false;
     bool validDate3 = false;
@@ -231,6 +231,8 @@ void cleanUpTrips()
     bool isLeap;
     bool tooOld;
     vector<Trips>cleaningVector;
+    vector<ClaimedTrips>cleaningVector2;
+    vector<int>cleaningEndMarkers;
 
     // Count 7 days back, unless we reach 1:
     while (lastWeekDay > 1 && counts < 7)
@@ -423,9 +425,6 @@ void cleanUpTrips()
     // Close the file:
     tripData.close();
 
-    // Set counter to 0:
-    counts = 0;
-
     // Add the last instance to the vector:
     cleaningVector.push_back(*cleaningTrips);
 
@@ -489,6 +488,147 @@ void cleanUpTrips()
     }
     // Close the file:
     tripData.close();
+
+    /* We now have to do the same thing for the
+     * driverActivityData file. We'll clear the cleaningVector
+     * first, and reset counts to 0.
+     * 
+     * We'll also try and delete any leftover cleaningTrips.
+     */
+    cleaningVector.clear();
+    delete cleaningTrips;
+    counts = 0;
+
+    // First, lets look for end markers in the driverActivityData file:
+    driverActivityData.open("driverActivityData.txt", ios::in);
+
+    while (getline(driverActivityData, tripLines))
+    {
+        // Count the lines being read:
+        counts++;
+
+        if (tripLines == "-----End of item-----")
+        {
+            // Add the location of the end marker to the appropriate vector:
+            cleaningEndMarkers.push_back(counts);
+        }
+    }
+    // Close the file:
+    driverActivityData.close();
+    counts = 0;
+    
+    // Open it again so we can fill the struct:
+    driverActivityData.open("driverActivityData.txt", ios::in);
+
+    // Create a temporary instance of the ClaimedTrips structure:
+    ClaimedTrips *cleaningTrips2 = new ClaimedTrips;
+
+    while (getline(driverActivityData, tripLines))
+    {
+        // Count the lines being read:
+        counts++;
+
+        for (int i = 0; i < cleaningEndMarkers.size(); i++)
+        {
+            // For every first line:
+            if (counts == (cleaningEndMarkers[i] - 5))
+            {
+                cleaningTrips2->emailAddress = tripLines;
+            }
+            // For every second line:
+            else if (counts == (cleaningEndMarkers[i] - 4))
+            {
+                cleaningTrips2->day = stoi(tripLines);
+            }
+            // For every third line:
+            else if (counts == (cleaningEndMarkers[i] - 3))
+            {
+                cleaningTrips2->month = stoi(tripLines);
+            }
+            // For every fourth line:
+            else if (counts == (cleaningEndMarkers[i] - 2))
+            {
+                cleaningTrips2->year = stoi(tripLines);
+            }
+            // For every fifth line:
+            else if (counts == (cleaningEndMarkers[i] - 1))
+            {
+                cleaningTrips2->cost = stod(tripLines);
+            }
+            // For every 6th line:
+            else if (counts == (cleaningEndMarkers[i]))
+            {
+                // Add the instance to the vector:
+                cleaningVector2.push_back(*cleaningTrips2);
+
+                // Create a new instance:
+                ClaimedTrips* cleaningTrips2 = new ClaimedTrips;
+            }
+        }
+    }
+    // Close the file:
+    driverActivityData.close();
+
+    counts = 0;
+    cleaningEndMarkers.clear();
+
+    // Add the last instance to the vector:
+    cleaningVector2.push_back(*cleaningTrips2);
+
+    // And then delete it, as it will be empty:
+    cleaningVector2.pop_back();
+
+    // Now that we've stored everything in a struct, we can re-write the driverActivityData file:
+    driverActivityData.open("driverActivityData.txt", ios::out);
+
+    for (int i = 0; i < cleaningVector2.size(); i++)
+    {
+        /* For each instance in the vector, find out if the date is more than a week ago
+         * and only print the contents if the date is more recent.
+         */
+        if (cleaningVector2[i].year < lastWeekYear)
+        {
+            tooOld = true;
+        }
+        else
+        {
+            // If the year isn't too far back, check the month:
+            if (cleaningVector2[i].year == lastWeekYear && cleaningVector2[i].month < lastWeekMonth)
+            {
+                tooOld = true;
+            }
+            else
+            {
+                // If the month isn't too far back, check the day:
+                if (cleaningVector2[i].year == lastWeekYear && cleaningVector2[i].month == lastWeekMonth && cleaningVector2[i].day < lastWeekDay)
+                {
+                    tooOld = true;
+                }
+                else
+                {
+                    tooOld = false;
+                }
+            }
+        }
+        // Only print if tooOld is false:
+        if (tooOld == false)
+        {
+            driverActivityData << cleaningVector2[i].emailAddress << endl;
+            driverActivityData << cleaningVector2[i].day << endl;
+            driverActivityData << cleaningVector2[i].month << endl;
+            driverActivityData << cleaningVector2[i].year << endl;
+            driverActivityData << cleaningVector2[i].cost << endl;
+            driverActivityData << "-----End of item-----" << endl;
+        }
+    }
+    // Close the file:
+    driverActivityData.close();
+
+    // Clear the cleaning vector:
+    cleaningVector2.clear();
+
+    // Delete leftover cleaningTrips2 instances:
+    delete cleaningTrips2;
 }
 
 void introFunction()
