@@ -70,6 +70,8 @@ string driverLine;
 string *driverLinePtr = &driverLine;
 string driverEmailNotFound;
 string *driverEmailNotFoundPtr = &driverEmailNotFound;
+string newDriverEmail;
+string *newDriverEmailPtr = &newDriverEmail;
 int drivingExperience;
 int *drivingExperiencePtr = &drivingExperience;
 int vehicleAge;
@@ -87,6 +89,8 @@ int *pYearToCheckPtr = &pYearToCheck;
 int driverLogInAttempts = 0;
 bool pLeap;
 bool *pLeapPtr = &pLeap;
+bool driverJustRegistered = false;
+bool *driverJustRegisteredPtr = &driverJustRegistered;
 
 // Global Variables For Driver Screen:
 fstream driverActivityData;
@@ -654,7 +658,7 @@ void cleanUpTrips()
 void introFunction()
 {
     // Placeholder for the intro screen:
-    cout << "\n\n[intro screen]" << endl << endl;
+    cout << "\n\n\t\t\t[intro screen]" << endl << endl;
 
     // Use a function to determine the user's role:
     roleChoiceFunction();
@@ -662,7 +666,7 @@ void introFunction()
     if (*roleChoicePtr == "C")
     {
         // Check if they already have an account or if they need to register:
-        cout << "\nDo you have an account? Yes or No: ";
+        cout << "\n\t\tDo you have an account? Yes or No: ";
         string customerAccountAnswer;
         string *customerAccountAnswerPtr = &customerAccountAnswer;
         cin >> *customerAccountAnswerPtr;
@@ -678,8 +682,8 @@ void introFunction()
         {
             while (*customerAccountAnswerPtr != "Yes" && *customerAccountAnswerPtr != "No")
             {
-                cout << "Sorry. You have entered an invalid option. Please try again." << endl;
-                cout << "\nDo you have an account? Yes or No: ";
+                cout << "\t\tSorry. You have entered an invalid option. Please try again." << endl;
+                cout << "\n\t\tDo you have an account? Yes or No: ";
                 cin >> *customerAccountAnswerPtr;
             }
             if (*customerAccountAnswerPtr == "Yes")
@@ -695,7 +699,7 @@ void introFunction()
     else if (*roleChoicePtr == "D")
     {
         // Check if they already have an account or if they need to register:
-        cout << "\nDo you have an account? Yes or No: ";
+        cout << "\n\t\tDo you have an account? Yes or No: ";
         string driverAccountAnswer;
         string *driverAccountAnswerPtr = &driverAccountAnswer;
         cin >> *driverAccountAnswerPtr;
@@ -711,8 +715,8 @@ void introFunction()
         {
             while (*driverAccountAnswerPtr != "Yes" && *driverAccountAnswerPtr != "No")
             {
-                cout << "Sorry. You have entered an invalid option. Please try again." << endl;
-                cout << "\nDo you have an account? Yes or No: ";
+                cout << "\t\tSorry. You have entered an invalid option. Please try again." << endl;
+                cout << "\n\t\tDo you have an account? Yes or No: ";
                 cin >> *driverAccountAnswerPtr;
             }
             if (*driverAccountAnswerPtr == "Yes")
@@ -735,7 +739,7 @@ void introFunction()
 string roleChoiceFunction()
 {
     // Input:
-    cout << "Are you a customer (C), a driver (D) or an admin (A)? ";
+    cout << "\t\tAre you a customer (C), a driver (D) or an admin (A)? ";
     cin >> *roleChoicePtr;
 
     // Action:
@@ -756,7 +760,7 @@ string roleChoiceFunction()
 // Customer LogIn Function:
 void customerLogIn()
 {
-    cout << "\n[Insert Customer LogIn Here]" << endl;
+    cout << "\n\n\n\t\t\t[Insert Customer LogIn Here]" << endl;
 
     // TEMPORARY:
     cout << endl << endl;
@@ -766,7 +770,7 @@ void customerLogIn()
 // Customer Registration Function:
 void customerRegistration()
 {
-    cout << "\n[Insert Customer Registration Here]" << endl;
+    cout << "\n\n\n\t\t\t[Insert Customer Registration Here]" << endl;
 }
 
 // Customer Screen:
@@ -777,39 +781,39 @@ void customerScreen()
      * License will be included with these programming files.
      */
     cout << endl << endl;
-    cout << "                  ---" << endl;
-    cout << "                  | |" << endl;
-    cout << "                 ....." << endl;
-    cout << "           , ,''  |    ```...___," << endl;
-    cout << "    .--  ''  P(___|_______/    (|" << endl;
-    cout << "  ( //            |             |" << endl;
-    cout << "  ` ._: ' ' :_____|______: ' ' :/" << endl;
-    cout << "      '  o  '            '  o  '" << endl;
-    cout << "        - -                - - " << endl;
-    cout << "______________________________________________" << endl;
-    cout << "______________________________________________" << endl << endl;
+    cout << "\t\t                  ---" << endl;
+    cout << "\t\t                  | |" << endl;
+    cout << "\t\t                 ....." << endl;
+    cout << "\t\t           , ,''  |    ```...___," << endl;
+    cout << "\t\t    .--  ''  P(___|_______/    (|" << endl;
+    cout << "\t\t  ( //            |             |" << endl;
+    cout << "\t\t  ` ._: ' ' :_____|______: ' ' :/" << endl;
+    cout << "\t\t      '  o  '            '  o  '" << endl;
+    cout << "\t\t        - -                - - " << endl;
+    cout << "\t\t______________________________________________" << endl;
+    cout << "\t\t______________________________________________" << endl << endl;
 
-    cout << "\nWelcome, Customer!" << endl << endl;
+    cout << "\n\t\t\tWelcome, Customer!" << endl << endl;
 
     // Standard Costs Section:
-    cout << "\n|| Standard Costs ||" << endl << endl;
+    cout << "\n\t\t\t|| Standard Costs ||" << endl << endl;
 
-    cout << "Base fare                        : " << *baseFarePtr << endl << endl;
-    cout << "Cost per kilometer               : " << *costPerKmPtr << endl << endl;
-    cout << "Cost per hour of waiting time" << endl;
-    cout << "(if applicable)                  : " << *costPerHourWaitingPtr << endl << endl;
-    cout << "Fixed fare between the airport" << endl;
-    cout << "and the CBD                      : " << *airportCBDFixedFarePtr << endl << endl;
+    cout << "\t\tBase fare                        : " << *baseFarePtr << endl;
+    cout << "\t\tCost per kilometer               : " << *costPerKmPtr << endl;
+    cout << "\t\tCost per hour of waiting time" << endl;
+    cout << "\t\t(if applicable)                  : " << *costPerHourWaitingPtr << endl;
+    cout << "\t\tFixed fare between the airport" << endl;
+    cout << "\t\tand the CBD                      : " << *airportCBDFixedFarePtr << endl << endl;
 
     // Options Section:
-    cout << "\n|| Options ||" << endl << endl;
+    cout << "\n\t\t\t|| Options ||" << endl << endl;
 
-    cout << "1. Get a price estimation" << endl << endl;
-    cout << "2. Book or cancel a trip" << endl << endl;
-    cout << "3. Log out" << endl << endl;
+    cout << "\t\t1. Get a price estimation" << endl;
+    cout << "\t\t2. Book or cancel a trip" << endl;
+    cout << "\t\t3. Log out" << endl << endl;
 
-    cout << "What would you like to do?" << endl;
-    cout << "Please type 1, 2 or 3: ";
+    cout << "\n\t\tWhat would you like to do?" << endl;
+    cout << "\t\tPlease type 1, 2 or 3: ";
     cin >> *customerScreenMenuOptionPtr;
 
     cout << endl;
@@ -834,7 +838,7 @@ void customerScreen()
         // Manage invalid inputs:
         while (*customerScreenMenuOptionPtr != 1 && *customerScreenMenuOptionPtr != 2 && *customerScreenMenuOptionPtr != 3)
         {
-            cout << "Sorry. Invalid input. Please type 1, 2 or 3: ";
+            cout << "\t\tSorry. Invalid input. Please type 1, 2 or 3: ";
             cin >> *customerScreenMenuOptionPtr;
             cout << endl;
         }
@@ -860,39 +864,39 @@ void customerScreen()
 void priceEstimation()
 {
     // Header Section:
-    cout << "___________________________________________________" << endl << endl;
-    cout << "---------------------------------------------------" << endl;
-    cout << "___________________________________________________" << endl << endl;
+    cout << "\n\t\t___________________________________________________" << endl << endl;
+    cout << "\t\t---------------------------------------------------" << endl;
+    cout << "\t\t___________________________________________________" << endl << endl;
 
-    cout << "Price Estimation" << endl << endl;
+    cout << "\n\t\t\tPrice Estimation" << endl << endl << endl;
 
-    cout << "Please Note: This estimation does not apply to trips to and from" << endl;
-    cout << "the airport and the CBD. The set fare for these is displayed above." << endl << endl;
+    cout << "\t\tPlease Note: This estimation does not apply to trips to and from" << endl;
+    cout << "\t\tthe airport and the CBD. The set fare for these is displayed above." << endl << endl;
 
     // Prevent missed inputs:
     cin.ignore();
 
     // Gather input:
-    cout << "\nWhat is your starting location? ";
+    cout << "\n\t\tWhat is your starting location? ";
     getline(cin, *estimateStartPtr);
 
-    cout << "\nWhat is your destination? ";
+    cout << "\n\t\tWhat is your destination? ";
     getline(cin, *estimateDestinationPtr);
 
-    cout << "\nHow far are you travelling?" << endl;
-    cout << "(please do not include 'km'): ";
+    cout << "\n\t\tHow far are you travelling in kilometers?" << endl;
+    cout << "\t\t(please do not include 'km'): ";
     cin >> *estimateDistancePtr;
 
     // Calculate and display the estimated price:
-    cout << "\n\nYou should expect to pay $" << *baseFarePtr + (*estimateDistancePtr * *costPerKmPtr) << " for your trip." << endl << endl;
+    cout << "\n\n\t\tYou should expect to pay $" << *baseFarePtr + (*estimateDistancePtr * *costPerKmPtr) << " for your trip." << endl << endl;
 
     // Display the 'road' again:
-    cout << "___________________________________________________" << endl << endl;
-    cout << "---------------------------------------------------" << endl;
-    cout << "___________________________________________________" << endl << endl;
+    cout << "\n\t\t___________________________________________________" << endl << endl;
+    cout << "\t\t---------------------------------------------------" << endl;
+    cout << "\t\t___________________________________________________" << endl << endl;
 
     // Make the system wait for input:
-    cout << "Please enter any character to continue... ";
+    cout << "\n\t\tPlease enter any character to continue... ";
     cin >> *pauseCharacterPtr;
 
     // Back to the customer screen:
@@ -902,26 +906,26 @@ void priceEstimation()
 // Trip Booking Function:
 void tripBooking()
 {
-    cout << "\n[Insert Trip Booking Screen Here]" << endl;
+    cout << "\n\t\t\t[Insert Trip Booking Screen Here]" << endl;
 }
 
 // Driver LogIn Function:
 void driverLogIn()
 {
     // Header Section:
-    cout << "___________________________________________________" << endl << endl;
-    cout << "---------------------------------------------------" << endl;
-    cout << "___________________________________________________" << endl << endl;
+    cout << "\t\t___________________________________________________" << endl << endl;
+    cout << "\t\t---------------------------------------------------" << endl;
+    cout << "\t\t___________________________________________________" << endl << endl;
 
-    cout << "Driver LogIn" << endl << endl;
+    cout << "\n\t\t\tDriver LogIn" << endl << endl << endl;
 
     // Fix the missed inputs issue:
     cin.ignore();
 
     // Obtain the login details:
-    cout << "Please enter your email address: ";
+    cout << "\t\tPlease enter your email address: ";
     getline(cin, *driverEmailLogInPtr);
-    cout << "Please enter your password: ";
+    cout << "\t\tPlease enter your password: ";
     getline(cin, *driverPasswordPtr);
 
     // Set login attempts to 0:
@@ -950,18 +954,18 @@ void driverLogIn()
                 {
                     // Reset login attempts and make the user wait 10 seconds:
                     driverLogInAttempts = 0;
-                    cout << "\nSorry. Incorrect password! Please try again after 10 seconds." << endl;
+                    cout << "\n\t\tSorry. Incorrect password! Please try again after 10 seconds." << endl;
 
                     // Create a timer for 1 minute:
                     using namespace std::chrono_literals;
-                    std::cout << "Waiting...\n" << std::flush;
+                    std::cout << "\n\t\tWaiting...\n" << std::flush;
                     auto start = std::chrono::high_resolution_clock::now();
                     std::this_thread::sleep_for(10000ms);
                     auto end = std::chrono::high_resolution_clock::now();
                     std::chrono::duration<double, std::milli> elapsed = end - start;
 
                     // After the timer is done, let them try again:
-                    cout << "\n\nPlease enter your password: ";
+                    cout << "\n\t\tPlease enter your password: ";
                     getline(cin, *driverPasswordPtr);
                     driverLogInAttempts++;
                 }
@@ -970,8 +974,8 @@ void driverLogIn()
                  */
                 if (*driverPasswordPtr != driverLine)
                 {
-                    cout << "\nSorry. Incorrect password! Please try again." << endl;
-                    cout << "Please enter your password: ";
+                    cout << "\n\t\tSorry. Incorrect password! Please try again." << endl;
+                    cout << "\t\tPlease enter your password: ";
                     getline(cin, *driverPasswordPtr);
                 }
             }
@@ -982,7 +986,7 @@ void driverLogIn()
             driverData.close();
 
             // Tell the user they have successfully logged in, and take them to the Driver Screen:
-            cout << "\nLog in successful!" << endl;
+            cout << "\n\n\t\tLog in successful!" << endl;
             driverScreen();
         }
         // Count the lines being read:
@@ -992,14 +996,14 @@ void driverLogIn()
     if (*driverEmailLinePtr == NULL)
     {
         driverData.close();
-        cout << "\nSorry. That email address was not found. Do you want to register (type: register)" << endl;
-        cout << "or return to the home screen (type: home)? ";
+        cout << "\n\t\tSorry. That email address was not found. Do you want to register (type: register)" << endl;
+        cout << "\t\tor return to the home screen (type: home)? ";
         cin >> *driverEmailNotFoundPtr;
 
         // Make sure the input is valid:
         while (*driverEmailNotFoundPtr != "register" && *driverEmailNotFoundPtr != "home" && *driverEmailNotFoundPtr != "Register" && *driverEmailNotFoundPtr != "Home")
         {
-            cout << "\nSorry. Invalid input. Please type register or home: ";
+            cout << "\n\t\tSorry. Invalid input. Please type register or home: ";
             cin >> *driverEmailNotFoundPtr;
         }
 
@@ -1019,95 +1023,95 @@ void driverLogIn()
 void driverRegistration()
 {
     // Eligibility Test Section:
-    cout << "___________________________________________________" << endl << endl;
-    cout << "---------------------------------------------------" << endl;
-    cout << "___________________________________________________" << endl << endl;
+    cout << "\n\n\t\t___________________________________________________" << endl << endl;
+    cout << "\t\t---------------------------------------------------" << endl;
+    cout << "\t\t___________________________________________________" << endl << endl;
 
-    cout << "Eligibility Test" << endl << endl;
+    cout << "\n\t\t\tEligibility Test" << endl << endl << endl;
 
     // Temporary Structure:
     Driver newDriver;
 
     // First check if the user is eligible to become a driver:
     // Check the licence status:
-    cout << "What is the status of your licence? Please type: Learners, Restricted, or Full." << endl;
-    cout << "Licence: ";
+    cout << "\t\tWhat is the status of your licence? Please type: Learners, Restricted, or Full." << endl;
+    cout << "\t\tLicence: ";
     cin >> *licenceStatusPtr;
     if (*licenceStatusPtr == "Full")
     {
         // Check the user's number of years of driving experience:
-        cout << "\nHow many years of driving experience do you have?" << endl;
-        cout << "Years of experience: ";
+        cout << "\n\t\tHow many years of driving experience do you have?" << endl;
+        cout << "\t\tYears of experience: ";
         cin >> *drivingExperiencePtr;
         if (*drivingExperiencePtr >= 2)
         {
             // Check how old the taxi's model is:
-            cout << "\nHow old is your vehicle (in years)?" << endl;
-            cout << "Vehicle's age: ";
+            cout << "\n\t\tHow old is your vehicle (in years)?" << endl;
+            cout << "\t\tVehicle's age: ";
             cin >> *vehicleAgePtr;
             if (*vehicleAgePtr <= 10)
             {
                 // Check the user's age:
-                cout << "\nHow old are you?" << endl;
-                cout << "Age: ";
+                cout << "\n\t\tHow old are you?" << endl;
+                cout << "\t\tAge: ";
                 cin >> *driverAgePtr;
                 if (*driverAgePtr > 21)
                 {
                     // Passed!
-                    cout << "\nCongratulations! You have passed the eligibility test!" << endl;
-                    cout << "You may now continue to register." << endl;
+                    cout << "\n\n\t\tCongratulations! You have passed the eligibility test!" << endl;
+                    cout << "\t\tYou may now continue to register." << endl;
 
                     // Registration Section:
-                    cout << "___________________________________________________" << endl << endl;
-                    cout << "---------------------------------------------------" << endl;
-                    cout << "___________________________________________________" << endl << endl;
+                    cout << "\n\n\n\t\t___________________________________________________" << endl << endl;
+                    cout << "\t\t---------------------------------------------------" << endl;
+                    cout << "\t\t___________________________________________________" << endl << endl;
 
-                    cout << "Registration" << endl << endl;
+                    cout << "\n\t\t\tRegistration" << endl << endl << endl;
 
                     // Fix the spaces causing missed inputs issue:
                     cin.ignore();
 
                     // Gather Input:
-                    cout << "|| General Information ||" << endl << endl;
-                    cout << "Full Name: ";
+                    cout << "\t\t\t|| General Information ||" << endl << endl;
+                    cout << "\t\tFull Name: ";
                     getline(cin, newDriver.fullName);
-                    cout << "Gender: ";
+                    cout << "\t\tGender: ";
                     getline(cin, newDriver.gender);
-                    cout << "Date of Birth (dd/mm/yyyy): ";
+                    cout << "\t\tDate of Birth (dd/mm/yyyy): ";
                     getline(cin, newDriver.dateOfBirth);
-                    cout << "Nationality: ";
+                    cout << "\t\tNationality: ";
                     getline(cin, newDriver.nationality);
-                    cout << "Contact Number: ";
+                    cout << "\t\tContact Number: ";
                     getline(cin, newDriver.contactNumber);
-                    cout << "Postal Address: ";
+                    cout << "\t\tPostal Address: ";
                     getline(cin, newDriver.postalAddress);
 
-                    cout << "\n|| Driving & Vehicle Details ||" << endl << endl;
-                    cout << "Licence Number: ";
+                    cout << "\n\n\n\t\t\t|| Driving & Vehicle Details ||" << endl << endl;
+                    cout << "\t\tLicence Number: ";
                     getline(cin, newDriver.licenceNumber);
-                    cout << "Licence Expiry Date (dd/mm/yyyy): ";
+                    cout << "\t\tLicence Expiry Date (dd/mm/yyyy): ";
                     getline(cin, newDriver.licenceExpiry);
                     newDriver.drivingExperience = *drivingExperiencePtr;
-                    cout << "Years of Driving Experience: " << newDriver.drivingExperience << endl;
-                    cout << "Vehicle Registration Number: ";
+                    cout << "\t\tYears of Driving Experience: " << newDriver.drivingExperience << endl;
+                    cout << "\t\tVehicle Registration Number: ";
                     getline(cin, newDriver.vehicleRegistrationNumber);
-                    cout << "Vehicle Model: ";
+                    cout << "\t\tVehicle Model: ";
                     getline(cin, newDriver.vehicleModel);
-                    cout << "WOF Expiry Date: ";
+                    cout << "\t\tWOF Expiry Date: ";
                     getline(cin, newDriver.wofExpiryDate);
 
-                    cout << "\n|| Payment Information ||" << endl << endl;
-                    cout << "Bank Name: ";
+                    cout << "\n\n\n\t\t\t|| Payment Information ||" << endl << endl;
+                    cout << "\t\tBank Name: ";
                     getline(cin, newDriver.bankName);
-                    cout << "Bank Account Number: ";
+                    cout << "\t\tBank Account Number: ";
                     getline(cin, newDriver.bankAccountNumber);
 
-                    cout << "\n|| Account LogIn Information ||" << endl << endl;
-                    cout << "Email Address: ";
+                    cout << "\n\n\n\t\t\t|| Account LogIn Information ||" << endl << endl;
+                    cout << "\t\tEmail Address: ";
                     getline(cin, newDriver.emailAddress);
-                    cout << "Create a Password: ";
+                    cout << "\t\tCreate a Password: ";
                     getline(cin, newDriver.password1);
-                    cout << "Re-enter Your Password: ";
+                    cout << "\t\tRe-enter Your Password: ";
                     getline(cin, newDriver.password2);
 
                     // Make sure both passwords are the same before confirming:
@@ -1119,12 +1123,12 @@ void driverRegistration()
                     {
                         while (newDriver.password1 != newDriver.password2)
                         {
-                            cout << "\nError. The passwords you have entered do not match." << endl;
-                            cout << "Please try again." << endl << endl;
+                            cout << "\n\t\tError. The passwords you have entered do not match." << endl;
+                            cout << "\t\tPlease try again." << endl << endl << endl;
 
-                            cout << "Create a Password: ";
+                            cout << "\t\tCreate a Password: ";
                             getline(cin, newDriver.password1);
-                            cout << "Re-enter Your Password: ";
+                            cout << "\t\tRe-enter Your Password: ";
                             getline(cin, newDriver.password2);
                         }
                         // Once they do match, confirm:
@@ -1132,26 +1136,26 @@ void driverRegistration()
                     }
 
                     // Endorsement Section:
-                    cout << endl << endl;
-                    cout << "___________________________________________________" << endl << endl;
-                    cout << "---------------------------------------------------" << endl;
-                    cout << "___________________________________________________" << endl << endl;
+                    cout << endl << endl << endl;
+                    cout << "\t\t___________________________________________________" << endl << endl;
+                    cout << "\t\t---------------------------------------------------" << endl;
+                    cout << "\t\t___________________________________________________" << endl << endl;
 
-                    cout << "Endorsement" << endl << endl;
+                    cout << "\n\t\t\tEndorsement" << endl << endl << endl;
 
                     // Assign an endorsement number:
-                    cout << "Your Endorsement Number: " << newDriver.endorsementNumber << endl;
+                    cout << "\t\tYour Endorsement Number: " << newDriver.endorsementNumber << endl;
 
                     // Ask if the user if they want a 1 year P endorsement or a 5 year one:
-                    cout << "\nDo you want this endorsement to last 1 year or 5 years?" << endl;
-                    cout << "Longevity of P Endorsement: ";
+                    cout << "\n\t\tDo you want this endorsement to last 1 year or 5 years?" << endl;
+                    cout << "\t\tLongevity of P Endorsement: ";
                     cin >> *pLongevityPtr;
 
                     // Make sure P Logevity is 1 or 5:
                     while (*pLongevityPtr != 1 && *pLongevityPtr != 5)
                     {
-                        cout << "\nSorry. You have entered an invalid option. Please enter 1 or 5." << endl;
-                        cout << "Longevity of P Endorsement: ";
+                        cout << "\n\t\tSorry. You have entered an invalid option. Please enter 1 or 5." << endl;
+                        cout << "\t\tLongevity of P Endorsement: ";
                         cin >> *pLongevityPtr;
                     }
 
@@ -1217,7 +1221,7 @@ void driverRegistration()
                     newDriver.endorsementExpiry[2] = *pYearToCheckPtr;
 
                     // Display the expiry date:
-                    cout << "\nYour Endorsement Expiry Date (dd/mm/yyyy) is: " << newDriver.endorsementExpiry[0] << "/" << newDriver.endorsementExpiry[1] << "/" << newDriver.endorsementExpiry[2] << endl << endl;
+                    cout << "\n\n\t\tYour Endorsement Expiry Date (dd/mm/yyyy) is: " << newDriver.endorsementExpiry[0] << "/" << newDriver.endorsementExpiry[1] << "/" << newDriver.endorsementExpiry[2] << endl << endl;
 
                     // Enter details into the driverData.txt file:
                     driverData.open("driverData.txt", ios::out | ios::app);
@@ -1246,37 +1250,43 @@ void driverRegistration()
                     // Close the file:
                     driverData.close();
 
+                    // Tell the system that the user just registered:
+                    *driverJustRegisteredPtr = true;
+
+                    // Grab the email address of this new driver:
+                    *newDriverEmailPtr = newDriver.emailAddress;
+
                     // Take the user to the driver screen after registering:
                     driverScreen();
                 }
                 else
                 {
-                    cout << "\nSorry! You are not eligible to drive for us at this time." << endl;
-                    cout << "but you are welcome to register once you are over 21 years old!" << endl << endl;
+                    cout << "\n\t\tSorry! You are not eligible to drive for us at this time." << endl;
+                    cout << "\t\tbut you are welcome to register once you are over 21 years old!" << endl << endl;
                     // Back to intro screen:
                     introFunction();
                 }
             }
             else
             {
-                cout << "\nSorry! You are not eligible to drive for us at this time," << endl;
-                cout << "but you are welcome to register with a vehicle that is ten or less years old!" << endl << endl;
+                cout << "\n\t\tSorry! You are not eligible to drive for us at this time," << endl;
+                cout << "\t\tbut you are welcome to register with a vehicle that is ten or less years old!" << endl << endl;
                 // Back to intro screen:
                 introFunction();
             }
         }
         else
         {
-            cout << "\nSorry! You are not eligible to drive for us at this time," << endl;
-            cout << "but you are welcome to register once you have been driving for at least 2 years!" << endl << endl;
+            cout << "\n\t\tSorry! You are not eligible to drive for us at this time," << endl;
+            cout << "\t\tbut you are welcome to register once you have been driving for at least 2 years!" << endl << endl;
             // Back to intro screen:
             introFunction();
         }
     }
     else
     {
-        cout << "\nSorry! You are not eligible to drive for us at this time," << endl;
-        cout << "but you are welcome to register once you have your full licence!" << endl << endl;
+        cout << "\n\t\tSorry! You are not eligible to drive for us at this time," << endl;
+        cout << "\t\tbut you are welcome to register once you have your full licence!" << endl << endl;
         // Back to intro screen:
         introFunction();
     }
@@ -1290,30 +1300,57 @@ void driverScreen()
      * License will be included with these programming files.
      */
     cout << endl << endl;
-    cout << "                  ---" << endl;
-    cout << "                  | |" << endl;
-    cout << "                 ....." << endl;
-    cout << "           , ,''  |    ```...___," << endl;
-    cout << "    .--  ''  P(___|_______/    (|" << endl;
-    cout << "  ( //            |             |" << endl;
-    cout << "  ` ._: ' ' :_____|______: ' ' :/" << endl;
-    cout << "      '  o  '            '  o  '" << endl;
-    cout << "        - -                - - " << endl;
-    cout << "______________________________________________" << endl;
-    cout << "______________________________________________" << endl << endl;
+    cout << "\t\t                  ---" << endl;
+    cout << "\t\t                  | |" << endl;
+    cout << "\t\t                 ....." << endl;
+    cout << "\t\t           , ,''  |    ```...___," << endl;
+    cout << "\t\t    .--  ''  P(___|_______/    (|" << endl;
+    cout << "\t\t  ( //            |             |" << endl;
+    cout << "\t\t  ` ._: ' ' :_____|______: ' ' :/" << endl;
+    cout << "\t\t      '  o  '            '  o  '" << endl;
+    cout << "\t\t        - -                - - " << endl;
+    cout << "\t\t______________________________________________" << endl;
+    cout << "\t\t______________________________________________" << endl << endl;
 
-    cout << "\nWelcome, Driver!" << endl << endl;
+    cout << "\n\t\t\tWelcome, Driver!" << endl << endl;
 
     // Payment Details Section:
-    cout << "\n|| Payment Details ||" << endl << endl;
+    cout << "\n\t\t\t|| Payment Details ||" << endl << endl;
 
-    // Open the driverData.txt file to display the payment details:
-    driverData.open("driverData.txt", ios::in);
-
-    // Create some local variables to read this file with:
+    // Create some local variables:
     string driverScreenLine;
     Driver loggedInDriver;
     int driverScreenLineCounter = 1;
+
+    /* If the driver just registered, we need to access their email
+     * address using the global variable.
+     */
+    if (*driverJustRegisteredPtr == true)
+    {
+        loggedInDriver.emailAddress = *newDriverEmailPtr;
+
+        // We also need to find out what line this is on:
+        driverData.open("driverData.txt", ios::in);
+
+        while (getline(driverData, driverScreenLine))
+        {
+            if (driverScreenLine == *newDriverEmailPtr)
+            {
+                *driverEmailLinePtr = driverScreenLineCounter;
+            }
+            driverScreenLineCounter++;
+        }
+        // Close the file:
+        driverData.close();
+    }
+    // Then reset the 'just registered' boolean to false:
+    *driverJustRegisteredPtr = false;
+
+    // Reset the counter:
+    driverScreenLineCounter = 1;
+
+    // Open the driverData.txt file to display the payment details:
+    driverData.open("driverData.txt", ios::in);
 
     /* Look for the bank name and the bank account number, 
      * 2 lines up and 1 line up from the email address respectively:
@@ -1334,19 +1371,19 @@ void driverScreen()
 
     // Close the file and print out the payment details:
     driverData.close();
-    cout << "Bank Name: " << loggedInDriver.bankName << endl;
-    cout << "Bank Account Number: " << loggedInDriver.bankAccountNumber << endl << endl;
+    cout << "\t\tBank Name: " << loggedInDriver.bankName << endl;
+    cout << "\t\tBank Account Number: " << loggedInDriver.bankAccountNumber << endl << endl;
 
     bookedTripsDisplay();
 
     // Report Section:
-    cout << "\n\n|| Daily Report ||" << endl << endl;
+    cout << "\n\t\t\t|| Daily Report ||" << endl << endl;
 
     time_t now = time(0);
     struct  tm* dt = localtime(&now);
 
     // To print out today's date...
-    cout << "Today's Date: " << dt->tm_mday << "/" << dt->tm_mon + 1 << "/" << dt->tm_year + 1900 << endl << endl;
+    cout << "\t\t\tToday's Date: " << dt->tm_mday << "/" << dt->tm_mon + 1 << "/" << dt->tm_year + 1900 << endl << endl;
 
     // Create some local variables:
     int numberOfTripsToday = 0;
@@ -1446,19 +1483,19 @@ void driverScreen()
     }
 
     // Print the number of trips today:
-    cout << "Your Trips Today: " << numberOfTripsToday << endl << endl;
+    cout << "\t\tYour Trips Today   : " << numberOfTripsToday << endl;
 
     // Print the total cost of trips today:
-    cout << "Total Earnings: " << sumOfCosts << endl << endl;
+    cout << "\t\tTotal Earnings     : " << sumOfCosts << endl;
 
     /* My research has shown that taxi drivers in NZ earn an average of $42,423 a year,
      * making their tax rate ((10.5% of 14,000) + (17.5% of (42,423 - 14,000)) / 42,423) * 100 = 15.2%.
      * (((0.105 * 14000) + (0.175 * (42423 - 14000))) / 42423) * 100 = 15.2.
      */
-    cout << "Tax Amount: " << sumOfCosts * 0.152 << endl << endl;
+    cout << "\t\tTax Amount         : " << sumOfCosts * 0.152 << endl << endl << endl;
 
     // Give the user some options to move forward:
-    cout << "Would you like to claim a trip (type: 1), or log out (type: 2)? ";
+    cout << "\t\tWould you like to claim a trip (type: 1), or log out (type: 2)? ";
     int claimOrLogOut;
     cin >> claimOrLogOut;
 
@@ -1482,8 +1519,8 @@ void driverScreen()
     {
         while (claimOrLogOut != 1 && claimOrLogOut != 2)
         {
-            cout << "\nSorry! You have entered an invalid option. Please try again." << endl;
-            cout << "What would you like to do? ";
+            cout << "\n\t\tSorry! You have entered an invalid option. Please try again." << endl;
+            cout << "\t\tWhat would you like to do? ";
             cin >> claimOrLogOut;
         }
         // Once the input is valid, act on it:
@@ -1518,8 +1555,8 @@ void claimTrip()
     vector<string>addClaim;
     vector<string>trips;
 
-    cout << "\nWhich trip would you like to claim?" << endl;
-    cout << "Trip Number: ";
+    cout << "\n\n\t\tWhich trip would you like to claim?" << endl;
+    cout << "\t\tTrip Number: ";
     cin >> *tripToClaimPtr;
 
     // First check if this trip exists and isn't in the past:
@@ -1646,7 +1683,7 @@ void claimTrip()
             trips.clear();
 
             // Ask the user if they would like to claim another trip:
-            cout << "\n\nWould you like to claim another trip (type y or n)? ";
+            cout << "\n\n\t\tWould you like to claim another trip (type y or n)? ";
             cin >> yesOrNo;
 
             if (yesOrNo == "y")
@@ -1663,7 +1700,7 @@ void claimTrip()
                 // Invalid input:
                 while (yesOrNo != "y" && yesOrNo != "n")
                 {
-                    cout << "\nSorry! Invalid input. Please type y or n: ";
+                    cout << "\n\t\tSorry! Invalid input. Please type y or n: ";
                     cin >> yesOrNo;
                 }
                 // When valid, check the input again:
@@ -1682,8 +1719,8 @@ void claimTrip()
             // Clear the vector as we won't need it:
             addClaim.clear();
 
-            cout << "\nSorry, that trip isn't available." << endl;
-            cout << "Would you like to claim a different trip (type y or n)? ";
+            cout << "\n\t\tSorry, that trip isn't available." << endl;
+            cout << "\t\tWould you like to claim a different trip (type y or n)? ";
             cin >> yesOrNo;
 
             if (yesOrNo == "y")
@@ -1700,7 +1737,7 @@ void claimTrip()
                 // Invalid input:
                 while (yesOrNo != "y" && yesOrNo != "n")
                 {
-                    cout << "\nSorry! Invalid input. Please type y or n: ";
+                    cout << "\n\t\tSorry! Invalid input. Please type y or n: ";
                     cin >> yesOrNo;
                 }
                 // When valid, check the input again:
@@ -1717,8 +1754,8 @@ void claimTrip()
     }
     else
     {
-        cout << "\nSorry, that trip doesn't exist!" << endl;
-        cout << "Would you like to claim a different trip (type y or n)? ";
+        cout << "\n\t\tSorry, that trip doesn't exist!" << endl;
+        cout << "\t\tWould you like to claim a different trip (type y or n)? ";
         cin >> yesOrNo;
 
         if (yesOrNo == "y")
@@ -1735,7 +1772,7 @@ void claimTrip()
             // Invalid input:
             while (yesOrNo != "y" && yesOrNo != "n")
             {
-                cout << "\nSorry! Invalid input. Please type y or n: ";
+                cout << "\n\t\tSorry! Invalid input. Please type y or n: ";
                 cin >> yesOrNo;
             }
             // When valid, check the input again:
@@ -1755,7 +1792,7 @@ void claimTrip()
 void bookedTripsDisplay()
 {
     // Trips Booked Section:
-    cout << "\n|| Trips Booked By Customers ||" << endl << endl;
+    cout << "\n\n\n\t\t\t|| Trips Booked By Customers ||" << endl << endl;
 
     // Open the tripData.txt file to view the trips booked:
     tripData.open("tripData.txt", ios::in);
@@ -1986,14 +2023,14 @@ void bookedTripsDisplay()
     {
         if (temporaryTrip->past == false)
         {
-            cout << "Trip Number: " << temporaryTrip->tripNumber << endl;
-            cout << "Customer Name: " << temporaryTrip->customerName << endl;
-            cout << "Contact Number: " << temporaryTrip->customerContactNumber << endl;
-            cout << "Starting Place: " << temporaryTrip->startingPlace << endl;
-            cout << "Destination: " << temporaryTrip->destination << endl;
-            cout << "Trip Date: " << temporaryTrip->tripDate[0] << "/" << temporaryTrip->tripDate[1] << "/" << temporaryTrip->tripDate[2] << endl;
-            cout << "Trip Time: " << temporaryTrip->time << endl;
-            cout << "Availability: ";
+            cout << "\t\tTrip Number     : " << temporaryTrip->tripNumber << endl;
+            cout << "\t\tCustomer Name   : " << temporaryTrip->customerName << endl;
+            cout << "\t\tContact Number  : " << temporaryTrip->customerContactNumber << endl;
+            cout << "\t\tStarting Place  : " << temporaryTrip->startingPlace << endl;
+            cout << "\t\tDestination     : " << temporaryTrip->destination << endl;
+            cout << "\t\tTrip Date       : " << temporaryTrip->tripDate[0] << "/" << temporaryTrip->tripDate[1] << "/" << temporaryTrip->tripDate[2] << endl;
+            cout << "\t\tTrip Time       : " << temporaryTrip->time << endl;
+            cout << "\t\tAvailability    : ";
             if (temporaryTrip->available == true)
             {
                 cout << "Available" << endl;
@@ -2026,12 +2063,14 @@ void bookedTripsDisplay()
 // Admin LogIn Function:
 void adminLogIn()
 {
-    // Header Section:
-    cout << "___________________________________________________" << endl << endl;
-    cout << "---------------------------------------------------" << endl;
-    cout << "___________________________________________________" << endl << endl;
+    cout << endl << endl;
 
-    cout << "Admin LogIn" << endl << endl;
+    // Header Section:
+    cout << "\t\t___________________________________________________" << endl << endl;
+    cout << "\t\t---------------------------------------------------" << endl;
+    cout << "\t\t___________________________________________________" << endl << endl << endl;
+
+    cout << "\t\t\tAdmin LogIn" << endl << endl << endl;;
 
     // Fix the missed inputs issue:
     cin.ignore();
@@ -2040,9 +2079,9 @@ void adminLogIn()
     adminLogInAttempts = 0;
 
     // Obtain the login details:
-    cout << "Please enter your email address: ";
+    cout << "\t\tPlease enter your email address: ";
     getline(cin, *adminEmailAddressPtr);
-    cout << "Please enter your password: ";
+    cout << "\t\tPlease enter your password: ";
     getline(cin, *adminPasswordPtr);
 
     // Open and search adminData.txt for these details:
@@ -2067,18 +2106,18 @@ void adminLogIn()
                 {
                     // Reset login attempts and make the user wait 10 seconds:
                     adminLogInAttempts = 0;
-                    cout << "\nSorry. Incorrect password! Please try again after 10 seconds." << endl;
+                    cout << "\n\t\tSorry. Incorrect password! Please try again after 10 seconds." << endl;
 
                     // Create a timer for 1 minute:
                     using namespace std::chrono_literals;
-                    std::cout << "Waiting...\n" << std::flush;
+                    std::cout << "\n\t\tWaiting...\n" << std::flush;
                     auto start = std::chrono::high_resolution_clock::now();
                     std::this_thread::sleep_for(10000ms);
                     auto end = std::chrono::high_resolution_clock::now();
                     std::chrono::duration<double, std::milli> elapsed = end - start;
 
                     // After the timer is done, let them try again:
-                    cout << "\n\nPlease enter your password: ";
+                    cout << "\n\t\tPlease enter your password: ";
                     getline(cin, *adminPasswordPtr);
                     adminLogInAttempts++;
                 }
@@ -2087,8 +2126,8 @@ void adminLogIn()
                     /* If the password entered is incorrect, tell the user this,
                      * as well as how many attempts they have left to make:
                      */
-                    cout << "\nSorry. Incorrect password! Please try again." << endl;
-                    cout << "Please enter your password: ";
+                    cout << "\n\t\tSorry. Incorrect password! Please try again." << endl;
+                    cout << "\t\tPlease enter your password: ";
                     getline(cin, *adminPasswordPtr);
                 }
             }
@@ -2099,7 +2138,7 @@ void adminLogIn()
             adminData.close();
 
             // Tell the user they have successfully logged in, and take them to the Admin Screen:
-            cout << "\nLog in successful!" << endl;
+            cout << "\n\n\t\tLog in successful!" << endl;
             adminLogInAttempts = 0;
             adminScreen();
         }
@@ -2110,14 +2149,14 @@ void adminLogIn()
     if (*adminEmailLinePtr == NULL)
     {
         adminData.close();
-        cout << "\nSorry. That email address was not found." << endl;
-        cout << "Do you want to return to the home screen(type: home)? ";
+        cout << "\n\t\tSorry. That email address was not found." << endl;
+        cout << "\t\tDo you want to return to the home screen(type: home)? ";
         cin >> *adminEmailNotFoundPtr;
 
         // Make sure the input is valid:
         while (*adminEmailNotFoundPtr != "home" && *adminEmailNotFoundPtr != "Home")
         {
-            cout << "\nSorry. Invalid input. Please type 'home' to return home: ";
+            cout << "\n\t\tSorry. Invalid input. Please type 'home' to return home: ";
             cin >> *adminEmailNotFoundPtr;
         }
 
@@ -2133,29 +2172,29 @@ void adminScreen()
      * Taxi modified from a car ASCII image "MACHO 2020" by The Animator on animasci.com
      * License will be included with these programming files.
      */
-    cout << endl << endl;
-    cout << "                  ---" << endl;
-    cout << "                  | |" << endl;
-    cout << "                 ....." << endl;
-    cout << "           , ,''  |    ```...___," << endl;
-    cout << "    .--  ''  P(___|_______/    (|" << endl;
-    cout << "  ( //            |             |" << endl;
-    cout << "  ` ._: ' ' :_____|______: ' ' :/" << endl;
-    cout << "      '  o  '            '  o  '" << endl;
-    cout << "        - -                - - " << endl;
-    cout << "______________________________________________" << endl;
-    cout << "______________________________________________" << endl << endl;
+    cout << endl << endl << endl;
+    cout << "\t\t                  ---" << endl;
+    cout << "\t\t                  | |" << endl;
+    cout << "\t\t                 ....." << endl;
+    cout << "\t\t           , ,''  |    ```...___," << endl;
+    cout << "\t\t    .--  ''  P(___|_______/    (|" << endl;
+    cout << "\t\t  ( //            |             |" << endl;
+    cout << "\t\t  ` ._: ' ' :_____|______: ' ' :/" << endl;
+    cout << "\t\t      '  o  '            '  o  '" << endl;
+    cout << "\t\t        - -                - - " << endl;
+    cout << "\t\t______________________________________________" << endl;
+    cout << "\t\t______________________________________________" << endl << endl;
 
-    cout << "\nWelcome, Admin!" << endl << endl;
+    cout << "\n\t\t\tWelcome, Admin!" << endl << endl;
 
     // Daily Driver Report:
-    cout << "\n|| Daily Driver Report ||" << endl << endl;
+    cout << "\n\t\t\t|| Daily Driver Report ||" << endl << endl;
 
     // Print today's date:
     time_t now = time(0);
     struct  tm* dt = localtime(&now);
 
-    cout << "Today's Date: " << dt->tm_mday << "/" << dt->tm_mon + 1 << "/" << dt->tm_year + 1900 << endl << endl;
+    cout << "\t\tToday's Date: " << dt->tm_mday << "/" << dt->tm_mon + 1 << "/" << dt->tm_year + 1900 << endl << endl;
 
     // Check how many claimed trips happened today by looking in the claimed trips file:
     driverActivityData.open("driverActivityData.txt", ios::in);
@@ -2256,21 +2295,21 @@ void adminScreen()
     }
 
     // Print the number of trips:
-    cout << "Number of Trips Today                  : " << numberOfTrips << endl;
+    cout << "\t\tNumber of Trips Today                  : " << numberOfTrips << endl;
 
     // Total paid in fares:
-    cout << "Total Driver Earnings (Gross)          : " << totalCustomerPayments << endl;
+    cout << "\t\tTotal Driver Earnings (Gross)          : " << totalCustomerPayments << endl;
 
     // Total tax deductions (based on the average taxi driver's yearly earnings of $42,423):
-    cout << "Total Tax Deductions                   : " << totalCustomerPayments * 0.152 << endl;
+    cout << "\t\tTotal Tax Deductions                   : " << totalCustomerPayments * 0.152 << endl;
 
     // Net income earned by all drivers today:
-    cout << "Combined Net Earnings for Drivers      : " << totalCustomerPayments - (totalCustomerPayments * 0.152) << endl << endl;
+    cout << "\t\tCombined Net Earnings for Drivers      : " << totalCustomerPayments - (totalCustomerPayments * 0.152) << endl << endl << endl;
 
     // Weekly Driver Report:
-    cout << "\n|| Weekly Driver Report ||" << endl << endl;
+    cout << "\n\t\t\t|| Weekly Driver Report ||" << endl << endl;
 
-    cout << "Date: From " << *lastWeekDayPtr << "/" << *lastWeekMonthPtr << "/" << *lastWeekYearPtr << " to " << dt->tm_mday << "/" << dt->tm_mon + 1 << "/" << dt->tm_year + 1900 << endl << endl;
+    cout << "\t\tDate: From " << *lastWeekDayPtr << "/" << *lastWeekMonthPtr << "/" << *lastWeekYearPtr << " to " << dt->tm_mday << "/" << dt->tm_mon + 1 << "/" << dt->tm_year + 1900 << endl << endl;
 
     /* Check how many claimed trips happened in the past week by looking in the claimed 
      * trips file.
@@ -2348,28 +2387,28 @@ void adminScreen()
         }
     }
     // Print the number of trips:
-    cout << "Number of Trips This Week              : " << numberOfTrips << endl;
+    cout << "\t\tNumber of Trips This Week              : " << numberOfTrips << endl;
 
     // Total paid in fares:
-    cout << "Total Driver Earnings (Gross)          : " << totalCustomerPayments << endl;
+    cout << "\t\tTotal Driver Earnings (Gross)          : " << totalCustomerPayments << endl;
 
     // Total tax deductions (based on the average taxi driver's yearly earnings of $42,423):
-    cout << "Total Tax Deductions                   : " << totalCustomerPayments * 0.152 << endl;
+    cout << "\t\tTotal Tax Deductions                   : " << totalCustomerPayments * 0.152 << endl;
 
     // Net income earned by all drivers today:
-    cout << "Combined Net Earnings for Drivers      : " << totalCustomerPayments - (totalCustomerPayments * 0.152) << endl << endl;
+    cout << "\t\tCombined Net Earnings for Drivers      : " << totalCustomerPayments - (totalCustomerPayments * 0.152) << endl << endl << endl;
 
     // Weekly Driver Report:
-    cout << "\n|| Customer Report ||" << endl << endl;
+    cout << "\n\t\t\t|| Customer Report ||" << endl << endl;
 
     // Print the number of new customers today and this week:
-    cout << "Number of New Customers Today          : " << *noOfNewCustomersTodayPtr << endl;
-    cout << "Number of New Customers This Week      : " << *noOfNewCustomersThisWeekPtr << endl;
-    cout << "Number of Trip Cancellations Today     : " << *noOfCancellationsDailyPtr << endl;
-    cout << "Number of Trip Cancellations This Week : " << *noOfCancellationsWeeklyPtr << endl << endl << endl;
+    cout << "\t\tNumber of New Customers Today          : " << *noOfNewCustomersTodayPtr << endl;
+    cout << "\t\tNumber of New Customers This Week      : " << *noOfNewCustomersThisWeekPtr << endl;
+    cout << "\t\tNumber of Trip Cancellations Today     : " << *noOfCancellationsDailyPtr << endl;
+    cout << "\t\tNumber of Trip Cancellations This Week : " << *noOfCancellationsWeeklyPtr << endl << endl << endl;
 
     // Give the admin the option to log out:
-    cout << "Would you like to log out (type: 1)? ";
+    cout << "\t\tWould you like to log out (type: 1)? ";
     cin >> adminChoice;
 
     // Act on input:
@@ -2382,8 +2421,8 @@ void adminScreen()
     {
         while (adminChoice != 1)
         {
-            cout << "\nSorry. You have entered an invalid option." << endl;
-            cout << "Please type 1 if you want to log out: ";
+            cout << "\n\t\tSorry. You have entered an invalid option." << endl;
+            cout << "\t\tPlease type 1 if you want to log out: ";
             cin >> adminChoice;
         }
         // Once the user enters 1, take them to the intro screen:
