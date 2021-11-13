@@ -26,6 +26,12 @@ int *lastWeekDayPtr = &lastWeekDay;
 int *lastWeekMonthPtr = &lastWeekMonth;
 int *lastWeekYearPtr = &lastWeekYear;
 
+// Global Variables For Customer Registration / LogIn:
+int noOfNewCustomersToday = 0;
+int *noOfNewCustomersTodayPtr = &noOfNewCustomersToday;
+int noOfNewCustomersThisWeek = 0;
+int *noOfNewCustomersThisWeekPtr = &noOfNewCustomersThisWeek;
+
 // Global Variables For Customer Screen:
 double costPerKm = 2.60;
 double *costPerKmPtr = &costPerKm;
@@ -45,6 +51,12 @@ string estimateDestination;
 string *estimateDestinationPtr = &estimateDestination;
 string pauseCharacter;
 string *pauseCharacterPtr = &pauseCharacter;
+
+// Global Variables For Trip Booking:
+int noOfCancellationsDaily = 0;
+int *noOfCancellationsDailyPtr = &noOfCancellationsDaily;
+int noOfCancellationsWeekly = 0;
+int *noOfCancellationsWeeklyPtr = &noOfCancellationsWeekly;
 
 // Global Variables For Driver Registration / LogIn:
 fstream driverData;
@@ -508,7 +520,7 @@ void cleanUpTrips()
     counts = 0;
 
     // First, lets look for end markers in the driverActivityData file:
-    //driverActivityData.open("driverActivityData.txt", ios::in);
+    driverActivityData.open("driverActivityData.txt", ios::in);
 
     while (getline(driverActivityData, tripLines))
     {
@@ -563,7 +575,7 @@ void cleanUpTrips()
             {
                 cleaningTrips2->cost = stod(tripLines);
             }
-            // For every 6th line:
+            // For every sixth line:
             else if (counts == (cleaningEndMarkers[i]))
             {
                 // Add the instance to the vector:
@@ -642,7 +654,7 @@ void cleanUpTrips()
 void introFunction()
 {
     // Placeholder for the intro screen:
-    cout << "[intro screen]" << endl << endl;
+    cout << "\n\n[intro screen]" << endl << endl;
 
     // Use a function to determine the user's role:
     roleChoiceFunction();
@@ -912,8 +924,12 @@ void driverLogIn()
     cout << "Please enter your password: ";
     getline(cin, *driverPasswordPtr);
 
+    // Set login attempts to 0:
+    driverLogInAttempts = 0;
+
     // Open and search driverData.txt for these details:
     driverData.open("driverData.txt", ios::in);
+
     // Search for the email address:
     while (getline(driverData, driverLine))
     {
@@ -952,9 +968,12 @@ void driverLogIn()
                 /* If the password entered is incorrect, tell the user this,
                  * as well as how many attempts they have left to make:
                  */
-                cout << "\nSorry. Incorrect password! Please try again." << endl;
-                cout << "Please enter your password: ";
-                getline(cin, *driverPasswordPtr);
+                if (*driverPasswordPtr != driverLine)
+                {
+                    cout << "\nSorry. Incorrect password! Please try again." << endl;
+                    cout << "Please enter your password: ";
+                    getline(cin, *driverPasswordPtr);
+                }
             }
             /* Once the password is correct...
              * Reset the lines being read to zero and close the file:
@@ -1507,7 +1526,7 @@ void claimTrip()
     for (int i = 0; i < displayedTripNumbers.size(); i++)
     {
         // Look for the trip number in the displayed trips vector:
-        if (*tripToClaimPtr == i)
+        if (*tripToClaimPtr == displayedTripNumbers[i])
         {
             tripFound = true;
         }
@@ -2017,6 +2036,9 @@ void adminLogIn()
     // Fix the missed inputs issue:
     cin.ignore();
 
+    // Set admin login attempts to 0:
+    adminLogInAttempts = 0;
+
     // Obtain the login details:
     cout << "Please enter your email address: ";
     getline(cin, *adminEmailAddressPtr);
@@ -2060,12 +2082,15 @@ void adminLogIn()
                     getline(cin, *adminPasswordPtr);
                     adminLogInAttempts++;
                 }
-                /* If the password entered is incorrect, tell the user this,
-                 * as well as how many attempts they have left to make:
-                 */
-                cout << "\nSorry. Incorrect password! Please try again." << endl;
-                cout << "Please enter your password: ";
-                getline(cin, *adminPasswordPtr);
+                if (*adminPasswordPtr != adminLine)
+                {
+                    /* If the password entered is incorrect, tell the user this,
+                     * as well as how many attempts they have left to make:
+                     */
+                    cout << "\nSorry. Incorrect password! Please try again." << endl;
+                    cout << "Please enter your password: ";
+                    getline(cin, *adminPasswordPtr);
+                }
             }
             /* Once the password is correct...
              * Reset the lines being read to zero and close the file:
@@ -2138,7 +2163,12 @@ void adminScreen()
     string activityLine;
     int lineCounter = 0;
     int numberOfTrips = 0;
+    int dayToCheck;
+    int monthToCheck;
+    int yearToCheck;
+    int adminChoice;
     double totalCustomerPayments = 0;
+    double cost = 0;
     bool dayValid = false;
     bool monthValid = false;
     bool yearValid = false;
@@ -2205,10 +2235,10 @@ void adminScreen()
                     yearValid = false;
                 }
             }
-            // Also, record the cost of the trip and add it to the total:
+            // Also, record the cost of the trip:
             else if (lineCounter == (endMarkers[a]) - 1)
             {
-                totalCustomerPayments += stod(activityLine);
+                cost = stod(activityLine);
             }
         }
         // Close the file:
@@ -2217,36 +2247,148 @@ void adminScreen()
         // Reset the line counter:
         lineCounter = 0;
 
-        // If the day, month and year matches today's date, add to numberOfTrips:
+        // If the day, month and year matches today's date, add to numberOfTrips and total cost:
         if (dayValid == true && monthValid == true && yearValid == true)
         {
             numberOfTrips++;
+            totalCustomerPayments += cost;
         }
     }
 
     // Print the number of trips:
-    cout << "Number of Trips Today              : " << numberOfTrips << endl;
+    cout << "Number of Trips Today                  : " << numberOfTrips << endl;
 
     // Total paid in fares:
-    cout << "Total Driver Earnings (Gross)      : " << totalCustomerPayments << endl;
+    cout << "Total Driver Earnings (Gross)          : " << totalCustomerPayments << endl;
 
     // Total tax deductions (based on the average taxi driver's yearly earnings of $42,423):
-    cout << "Total Tax Deductions               : " << totalCustomerPayments * 0.152 << endl;
+    cout << "Total Tax Deductions                   : " << totalCustomerPayments * 0.152 << endl;
 
     // Net income earned by all drivers today:
-    cout << "Combined Net Earnings for Drivers  : " << totalCustomerPayments - (totalCustomerPayments * 0.152) << endl << endl;
+    cout << "Combined Net Earnings for Drivers      : " << totalCustomerPayments - (totalCustomerPayments * 0.152) << endl << endl;
 
     // Weekly Driver Report:
-    cout << "\n|| Daily Driver Report ||" << endl << endl;
+    cout << "\n|| Weekly Driver Report ||" << endl << endl;
 
     cout << "Date: From " << *lastWeekDayPtr << "/" << *lastWeekMonthPtr << "/" << *lastWeekYearPtr << " to " << dt->tm_mday << "/" << dt->tm_mon + 1 << "/" << dt->tm_year + 1900 << endl << endl;
 
     /* Check how many claimed trips happened in the past week by looking in the claimed 
      * trips file.
-     * Because we delete any trips older than a week using the cleaningUpTrips() function,
+     * Because we deleted any trips older than a week using the cleaningUpTrips() function,
      * we just need to check for trips that aren't in the future.
      */
-    /*driverActivityData.open("driverActivityData.txt", ios::in);*/
+
+    // Reset the line counter, cost sum, and trip sum:
+    cost = 0;
+    lineCounter = 0;
+    numberOfTrips = 0;
+    totalCustomerPayments = 0;
+
+    // We can use the end markers again to read each date and cost line:
+    for (int i = 0; i < endMarkers.size(); i++)
+    {
+        // Open the file:
+        driverActivityData.open("driverActivityData.txt", ios::in);
+
+        while (getline(driverActivityData, activityLine))
+        {
+            // Count the lines being read:
+            lineCounter++;
+
+            // Check the day:
+            if (lineCounter == (endMarkers[i] - 4))
+            {
+                dayToCheck = stoi(activityLine);
+            }
+            // Check the month:
+            else if (lineCounter == (endMarkers[i] - 3))
+            {
+                monthToCheck = stoi(activityLine);
+            }
+            // Check the year:
+            else if (lineCounter == (endMarkers[i] - 2))
+            {
+                yearToCheck = stoi(activityLine);
+            }
+            // Check the cost:
+            else if (lineCounter == (endMarkers[i] - 1))
+            {
+                cost = stod(activityLine);
+            }
+        }
+        // Close the file and reset the counter:
+        driverActivityData.close();
+        lineCounter = 0;
+
+        // Find out if the date is in the future, starting with the year:
+        if (yearToCheck > dt->tm_year + 1900)
+        {
+            yearValid = false;
+        }
+        // Then check the month:
+        else if (yearToCheck == dt->tm_year + 1900 && monthToCheck > dt->tm_mon + 1)
+        {
+            monthValid = false;
+        }
+        else if (yearToCheck == dt->tm_year + 1900 && monthToCheck == dt->tm_mon + 1 && dayToCheck > dt->tm_mday)
+        {
+            dayValid = false;
+        }
+        else
+        {
+            yearValid = true;
+            monthValid = true;
+            dayValid = true;
+
+            /* If the date isn't in the future, 
+             * add to the number of trips and the total payments.
+             */
+            numberOfTrips++;
+            totalCustomerPayments += cost;
+        }
+    }
+    // Print the number of trips:
+    cout << "Number of Trips This Week              : " << numberOfTrips << endl;
+
+    // Total paid in fares:
+    cout << "Total Driver Earnings (Gross)          : " << totalCustomerPayments << endl;
+
+    // Total tax deductions (based on the average taxi driver's yearly earnings of $42,423):
+    cout << "Total Tax Deductions                   : " << totalCustomerPayments * 0.152 << endl;
+
+    // Net income earned by all drivers today:
+    cout << "Combined Net Earnings for Drivers      : " << totalCustomerPayments - (totalCustomerPayments * 0.152) << endl << endl;
+
+    // Weekly Driver Report:
+    cout << "\n|| Customer Report ||" << endl << endl;
+
+    // Print the number of new customers today and this week:
+    cout << "Number of New Customers Today          : " << *noOfNewCustomersTodayPtr << endl;
+    cout << "Number of New Customers This Week      : " << *noOfNewCustomersThisWeekPtr << endl;
+    cout << "Number of Trip Cancellations Today     : " << *noOfCancellationsDailyPtr << endl;
+    cout << "Number of Trip Cancellations This Week : " << *noOfCancellationsWeeklyPtr << endl << endl << endl;
+
+    // Give the admin the option to log out:
+    cout << "Would you like to log out (type: 1)? ";
+    cin >> adminChoice;
+
+    // Act on input:
+    if (adminChoice == 1)
+    {
+        // Go back to the intro screen:
+        introFunction();
+    }
+    else
+    {
+        while (adminChoice != 1)
+        {
+            cout << "\nSorry. You have entered an invalid option." << endl;
+            cout << "Please type 1 if you want to log out: ";
+            cin >> adminChoice;
+        }
+        // Once the user enters 1, take them to the intro screen:
+        introFunction();
+    }
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
