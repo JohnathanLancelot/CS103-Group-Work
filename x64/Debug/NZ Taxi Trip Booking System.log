@@ -1,11 +1,6 @@
 ﻿  NZ Taxi Trip Booking System.cpp
-C:\Users\jadet\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(248,1): error C2045: 'getline': label redefined
-C:\Users\jadet\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(251,1): error C2045: 'getline': label redefined
-C:\Users\jadet\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(253,1): error C2045: 'getline': label redefined
-C:\Users\jadet\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(255,1): error C2045: 'getline': label redefined
-C:\Users\jadet\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(257,1): error C2045: 'getline': label redefined
-C:\Users\jadet\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(261,1): error C2045: 'getline': label redefined
-C:\Users\jadet\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(263,1): error C2045: 'getline': label redefined
-C:\Users\jadet\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(267,1): error C2045: 'getline': label redefined
-C:\Users\jadet\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(269,1): error C2045: 'getline': label redefined
-C:\Users\jadet\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(271,1): error C2045: 'getline': label redefined
+C:\Users\jadet\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(214): warning C4715: 'roleChoiceFunction': not all control paths return a value
+NZ Taxi Trip Booking System.obj : error LNK2019: unresolved external symbol "void __cdecl driverLogIn(void)" (?driverLogIn@@YAXXZ) referenced in function "void __cdecl introFunction(void)" (?introFunction@@YAXXZ)
+NZ Taxi Trip Booking System.obj : error LNK2019: unresolved external symbol "void __cdecl driverRegistration(void)" (?driverRegistration@@YAXXZ) referenced in function "void __cdecl introFunction(void)" (?introFunction@@YAXXZ)
+NZ Taxi Trip Booking System.obj : error LNK2019: unresolved external symbol "void __cdecl adminLogIn(void)" (?adminLogIn@@YAXXZ) referenced in function "void __cdecl introFunction(void)" (?introFunction@@YAXXZ)
+C:\Users\jadet\CS103-Group-Work\x64\Debug\NZ Taxi Trip Booking System.exe : fatal error LNK1120: 3 unresolved externals

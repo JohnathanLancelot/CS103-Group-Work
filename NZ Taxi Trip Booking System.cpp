@@ -33,7 +33,7 @@ string customerEmailNotFound;
 string* customerEmailNotFoundPtr = &customerEmailNotFound;
 string newCustomerEmail;
 string* newCustomerEmailPtr = &newCustomerEmail;
-fstream Data;
+fstream customerData;
 
 // Functions:
 void introFunction();
@@ -69,18 +69,30 @@ void introFunction()
     // Placeholder for the intro screen:
     cout << "[intro screen]" << endl << endl;
     cout << endl << endl;
-    cout << "                  ---" << endl;
-    cout << "                  | |" << endl;
-    cout << "                 ....." << endl; 
-    cout << "           , ,''  |    ```...___," << endl;
-    cout << "    .--  ''  P(___|_______/    (|" << endl;
-    cout << "  ( //            |             |" << endl;
-    cout << "  ` ._: ' ' :_____|______: ' ' :/" << endl;
-    cout << "      '  o  '            '  o  '" << endl;
-    cout << "        - -                - - " << endl;
-    cout << " _____________________________________________" << endl;
-    cout << " ___________Welcome to NZ Taxi~!______________" << endl;
-    cout << " _____________________________________________" << endl << endl;
+    cout << "\t                  ---" << endl;
+    cout << "\t                  | |" << endl;
+    cout << "\t                 ....." << endl;
+    cout << "\t           , ,''  |    ```...___," << endl;
+    cout << "\t    .--  ''  P(___|_______/    (|" << endl;
+    cout << "\t  ( //            |             |" << endl;
+    cout << "\t  ` ._: ' ' :_____|______: ' ' :/" << endl;
+    cout << "\t      '  o  '            '  o  '" << endl;
+    cout << "\t        - -                - - " << endl;
+    cout << "\t _____________________________________________" << endl;
+    cout << "\t _________Welcome to NZ Taxi Trip~!___________" << endl;
+    cout << "\t _____________________________________________" << endl << endl;
+    cout << "\t ________________T&C's Apply__________________" << endl << endl;
+    cout << "\t ________Customer Terms & Conditions__________" << endl;
+    cout << "1. Wear a face mask during your ride(can be temporarily removed for the purpose of drinking water from a bottle) \n unless you have a medical exemption(in which case you will need to provide proof of this)." << endl;
+    cout << "2. Do not ride with us if you are awaiting the results of a Covid test, suspect you may have Covid, \n or are currently showing cold or flu - like symptoms." << endl;
+    cout << "3. There is to be no consumption of hot food in the cab, nor any drinks that may spill." << endl;
+
+    cout << " __________Driver Terms& Conditions___________" << endl;
+    cout << "1. In order to drive for us, you will need to have had both Covid - 19 vaccinations." << endl;
+    cout << "2. Always wear a face mask when driving with a passenger(unless you have a medical exemption)." << endl;
+    cout << "3. You must be at least 22 years of age to drive for us." << endl;
+    cout << "4. Always conduct yourself in a polite and professional manner with customers." << endl;
+    cout << "5. All drivers who choose to participate in NZ Taxi Trip do so at their own discretion,\n as an independent contractor." << endl;
     // Use a function to determine the user's role:
     roleChoiceFunction();
 
@@ -243,32 +255,32 @@ void customerRegistration()
         // Gather Input:
         cout << "\t\t\t|| General Information ||" << endl << endl;
         cout << "\t\tFull Name: ";
-    getline:(cin, newCustomer.fullName);
+        getline(cin, newCustomer.fullName);
         cout << "\t\tGender: ";
-    getline:(cin, newCustomer.gender);
+        getline(cin, newCustomer.gender);
 
         cout << "\t\tDate of Birth (dd/mm/yyyy): ";
-    getline:(cin, newCustomer.dateOfBirth);
+        getline(cin, newCustomer.dateOfBirth);
         cout << "\t\tNationality: ";
-    getline:(cin, newCustomer.nationality);
+        getline(cin, newCustomer.nationality);
         cout << "\t\tContact Number: ";
-    getline:(cin, newCustomer.contactNumber);
+        getline(cin, newCustomer.contactNumber);
         cout << "\t\tPostal Address: ";
-    getline:(cin, newCustomer.postalAddress);
+        getline(cin, newCustomer.postalAddress);
 
         cout << "\n\n\n\t\t\t|| Payment Information ||" << endl << endl;
         cout << "\t\tBank Name: ";
-    getline:(cin, newCustomer.bankName);
+        getline(cin, newCustomer.bankName);
         cout << "\t\tBank Account Number: ";
-    getline:(cin, newCustomer.bankAccountNumber);
+        getline(cin, newCustomer.bankAccountNumber);
 
         cout << "\n\n\n\t\t\t|| Account LogIn Information ||" << endl << endl;
         cout << "\t\tEmail Address: ";
-    getline:(cin, newCustomer.emailAddress);
+        getline(cin, newCustomer.emailAddress);
         cout << "\t\tCreate a Password: ";
-    getline:(cin, newCustomer.password1);
+        getline(cin, newCustomer.password1);
         cout << "\t\tRe-enter Your Password: ";
-    getline:(cin, newCustomer.password2);
+        getline(cin, newCustomer.password2);
 
         if (newCustomer.password1 == newCustomer.password2)
         {
@@ -290,7 +302,7 @@ void customerRegistration()
             newCustomer.passwordConfirmed = newCustomer.password1;
         }
         // Enter details into the customerData.txt file:
-        /*
+        
         customerData.open("customerData.txt", ios::out | ios::app);
         customerData << newCustomer.fullName << endl;
         customerData << newCustomer.gender << endl;
@@ -298,12 +310,6 @@ void customerRegistration()
         customerData << newCustomer.nationality << endl;
         customerData << newCustomer.contactNumber << endl;
         customerData << newCustomer.postalAddress << endl;
-        customerData << newCustomer.licenceNumber << endl;
-        customerData << newCustomer.licenceExpiry << endl;
-        customerData << newCustomer.drivingExperience << endl;
-        customerData << newCustomer.vehicleRegistrationNumber << endl;
-        customerData << newCustomer.vehicleModel << endl;
-        customerData << newCustomer.wofExpiryDate << endl;
         customerData << newCustomer.bankName << endl;
         customerData << newCustomer.bankAccountNumber << endl;
         customerData << newCustomer.emailAddress << endl;
@@ -312,8 +318,8 @@ void customerRegistration()
         customerData << newCustomer.endorsementExpiry[0] << endl;
         customerData << newCustomer.endorsementExpiry[1] << endl;
         customerData << newCustomer.endorsementExpiry[2] << endl;
-        customerData << "-----End of item-----" << endl;*/
-
+        customerData << "-----End of item-----" << endl;
+        customerData.close();
         // Driver LogIn Function:
         void driverLogIn();
         {
