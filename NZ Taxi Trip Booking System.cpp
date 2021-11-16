@@ -1,6 +1,7 @@
 /* Authors: Jade Brown & Johnathan Worrall
  * Assignment: CS103 Group Project
  * Project Name: NZ Taxi Trip Booking System
+ * Jades
  */
 
 #include <iostream>
