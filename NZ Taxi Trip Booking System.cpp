@@ -209,7 +209,7 @@ struct ClaimedTrips
     int emailLine = 0;
 };
 
-// PLACEHOLDER TRIP BOOKING STRUCT:
+// Trip Booking Structure:
 struct Trips
 {
     int tripNumber = 0;
@@ -219,8 +219,16 @@ struct Trips
     string destination;
     int tripDate[3] = { 0,0,0 };
     string time;
+    int noOfPeople = 0;
+    string extraSupport;
+    string luggage;
+    string visaCardNumber;
+    string cardExpiry;
+    string cardCVC;
+    bool paymentStatus = false;
+    double cost = 0;
     bool available = true;
-    Trips* nextPosition = NULL;
+    Trips *nextPosition = NULL;
 
     /* This will help us only print the trips booked
      * for the present or future.
