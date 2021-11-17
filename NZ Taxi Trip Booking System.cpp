@@ -17,6 +17,9 @@ using namespace std;
 
 // Global Variables:
 fstream tripData;
+fstream newCustomerData;
+fstream tripNumberGenerator;
+fstream tripCancellations;
 string roleChoice;
 string* roleChoicePtr = &roleChoice;
 int lastWeekDay;
@@ -1228,10 +1231,54 @@ void tripBooking()
 
     cout << "\n\t\t\tTrip Booking" << endl << endl << endl;
 
-    // Fix the missed inputs issue:
-    /*cin.ignore();*/
+    // Create a temporary instance:
+    Trips newTrip;
 
-    // Gather input about this trip:
+    // Fix the missed inputs issue:
+    cin.ignore();
+
+    // Gather input about this trip [INPUT GOES HERE]:
+
+    /* Generate a new trip number.
+     * If there isn't a tripNumberGenerator file yet,
+     * make one, and make the first trip number 0
+     * (it will soon be changed to 1).
+     */
+    tripNumberGenerator.open("tripNumberGenerator.txt", ios::out | ios::_Noreplace);
+
+    tripNumberGenerator << 0;
+
+    tripNumberGenerator.close();
+
+    // Read the file, and update its number by adding 1:
+    tripNumberGenerator.open("tripNumberGenerator.txt", ios::in);
+
+    int generatedTripNumber = 0;
+    string oneLine;
+
+    while (getline(tripNumberGenerator, oneLine))
+    {
+        generatedTripNumber = stoi(oneLine);
+    }
+    generatedTripNumber++;
+
+    // Close the file:
+    tripNumberGenerator.close();
+
+    // Open the file again in order to rewrite it with its new number:
+    tripNumberGenerator.open("tripNumberGenerator.txt", ios::out);
+
+    tripNumberGenerator << generatedTripNumber;
+
+    // Close the file:
+    tripNumberGenerator.close();
+
+    // Update the current struct instance:
+    newTrip.tripNumber = generatedTripNumber;
+
+    // Write to the tripData file [WRITING TO TRIPDATA GOES HERE]:
+
+    // Other stuff...
 }
 
 // Driver LogIn Function:
