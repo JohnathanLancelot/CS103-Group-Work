@@ -1397,7 +1397,34 @@ void tripBooking()
     // Fix the missed inputs issue:
     cin.ignore();
 
-    // Gather input about this trip [INPUT GOES HERE]:
+    // Gather input about this trip:
+    cout << "\t\tPlease enter your full name: ";
+    getline(cin, newTrip.customerName);
+    cout << "\n\t\tPlease enter your starting location: ";
+    getline(cin, newTrip.startingPlace);
+    cout << "\n\t\tPlease enter your destination: ";
+    getline(cin, newTrip.destination);
+    cout << "\n\t\tPlease enter the time you want to be picked up: ";
+    getline(cin, newTrip.time);
+    cout << "\n\t\tPlease enter the number of people travelling: ";
+    cin >> newTrip.noOfPeople;
+    cin.ignore();
+    cout << "\n\t\tDo you need any extra support?" << endl;
+    cout << "\t\tPlease specify: ";
+    getline(cin, newTrip.extraSupport);
+    cout << "\n\t\tDo you have any luggage?" << endl;
+    cout << "\t\tPlease specify if it is normal, " << endl;
+    cout << "\t\tlarge and / or heavy: ";
+    getline(cin, newTrip.luggage);
+
+    // Note for later: Possibly look into obtaining these from what's already on file
+    // in the customerData file from registration, but only after the other stuff is done.
+    cout << "\n\t\tPlease enter your Visa card number: ";
+    getline(cin, newTrip.visaCardNumber);
+    cout << "\n\t\tPlease enter your card's expiry date: ";
+    getline(cin, newTrip.cardExpiry);
+    cout << "\n\t\tPlease enter your card's CVC: ";
+    getline(cin, newTrip.cardCVC);
 
     /* Generate a new trip number.
      * If there isn't a tripNumberGenerator file yet,
