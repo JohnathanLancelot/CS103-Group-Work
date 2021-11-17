@@ -17,6 +17,9 @@ using namespace std;
 
 // Global Variables:
 fstream tripData;
+fstream newCustomerData;
+fstream tripNumberGenerator;
+fstream tripCancellations;
 string roleChoice;
 string* roleChoicePtr = &roleChoice;
 int lastWeekDay;
@@ -27,11 +30,27 @@ int* lastWeekMonthPtr = &lastWeekMonth;
 int* lastWeekYearPtr = &lastWeekYear;
 
 // Global Variables For Customer Registration / LogIn:
+fstream customerData;
 int noOfNewCustomersToday = 0;
 int* noOfNewCustomersTodayPtr = &noOfNewCustomersToday;
 int noOfNewCustomersThisWeek = 0;
 int* noOfNewCustomersThisWeekPtr = &noOfNewCustomersThisWeek;
-fstream customerData;
+int customerLogInAttempts = 0;
+int customerEmailLine;
+int* customerEmailLinePtr = &customerEmailLine;
+int customerLinesCounter = 0;
+int customerScreenLineCounter = 1;
+string customerEmailLogIn;
+string* customerEmailLogInPtr = &customerEmailLogIn;
+string customerPassword;
+string* customerPasswordPtr = &customerPassword;
+string customerLine;
+string customerEmailNotFound;
+string* customerEmailNotFoundPtr = &customerEmailNotFound;
+string newCustomerEmail;
+string* newCustomerEmailPtr = &newCustomerEmail;
+bool customerJustRegistered = false;
+bool* customerJustRegisteredPtr = &customerJustRegistered;
 
 // Global Variables For Customer Screen:
 double costPerKm = 2.60;
@@ -126,6 +145,33 @@ int* adminLinesCounterPtr = &adminLinesCounter;
 int adminLogInAttempts = 0;
 
 // Structures:
+struct Customer
+{
+    // General Information:
+    string fullName;
+    string contactNumber;
+    string postalAddress;
+
+    // Payment Information:
+    string cardNumber;
+    char cardExpiry[10] = " ";
+    string cardVerificationCode;
+
+    // Login Information:
+    string emailAddress;
+    string password1;
+    string password2;
+    string passwordConfirmed;
+};
+
+struct CustomerCount
+{
+    int day = 0;
+    int month = 0;
+    int year = 0;
+    bool tooOld = false;
+};
+
 struct Driver
 {
     // General Information:
@@ -159,21 +205,6 @@ struct Driver
     int endorsementExpiry[3] = { 0,0,0 };
 };
 
-
-struct Customer {
-    // General Information:
-    string fullName;
-    string contactNumber;
-    string postalAddress;
-    string paymentMethod;
-
-    // Account LogIn Information
-    string emailAddress;
-    string password1;
-    string password2;
-    string passwordConfirmed;
-};
-
 // Driver Activity Struct / Claimed Trips:
 struct ClaimedTrips
 {
@@ -181,6 +212,7 @@ struct ClaimedTrips
     int day = 0;
     int month = 0;
     int year = 0;
+    string time;
     double cost = 0.00;
     bool validDate1 = false;
     bool validDate2 = false;
@@ -188,7 +220,7 @@ struct ClaimedTrips
     int emailLine = 0;
 };
 
-// PLACEHOLDER TRIP BOOKING STRUCT:
+// Trip Booking Structure:
 struct Trips
 {
     int tripNumber = 0;
@@ -198,12 +230,22 @@ struct Trips
     string destination;
     int tripDate[3] = { 0,0,0 };
     string time;
+    int noOfPeople = 0;
+    string extraSupport;
+    string luggage;
+    string visaCardNumber;
+    string cardExpiry;
+    string cardCVC;
+    bool paymentStatus = false;
+    double cost = 0;
     bool available = true;
     Trips* nextPosition = NULL;
 
+
+
     /* This will help us only print the trips booked
-     * for the present or future.
-     */
+    * for the present or future.
+    */
     bool past = false;
 };
 
@@ -267,6 +309,7 @@ void cleanUpTrips()
     bool tooOld;
     vector<Trips>cleaningVector;
     vector<ClaimedTrips>cleaningVector2;
+    vector<CustomerCount>cleaningVector3;
     vector<int>cleaningEndMarkers;
 
     // Start the dates off as the same:
@@ -539,7 +582,7 @@ void cleanUpTrips()
     delete cleaningTrips;
     counts = 0;
 
-    // First, lets look for end markers in the driverActivityData file:
+    // First, let's look for end markers in the driverActivityData file:
     driverActivityData.open("driverActivityData.txt", ios::in);
 
     while (getline(driverActivityData, tripLines))
@@ -571,31 +614,36 @@ void cleanUpTrips()
         for (int i = 0; i < cleaningEndMarkers.size(); i++)
         {
             // For every first line:
-            if (counts == (cleaningEndMarkers[i] - 5))
+            if (counts == (cleaningEndMarkers[i] - 6))
             {
                 cleaningTrips2->emailAddress = tripLines;
             }
             // For every second line:
-            else if (counts == (cleaningEndMarkers[i] - 4))
+            else if (counts == (cleaningEndMarkers[i] - 5))
             {
                 cleaningTrips2->day = stoi(tripLines);
             }
             // For every third line:
-            else if (counts == (cleaningEndMarkers[i] - 3))
+            else if (counts == (cleaningEndMarkers[i] - 4))
             {
                 cleaningTrips2->month = stoi(tripLines);
             }
             // For every fourth line:
-            else if (counts == (cleaningEndMarkers[i] - 2))
+            else if (counts == (cleaningEndMarkers[i] - 3))
             {
                 cleaningTrips2->year = stoi(tripLines);
             }
             // For every fifth line:
+            else if (counts == (cleaningEndMarkers[i] - 2))
+            {
+                cleaningTrips2->time = tripLines;
+            }
+            // For every sixth line:
             else if (counts == (cleaningEndMarkers[i] - 1))
             {
                 cleaningTrips2->cost = stod(tripLines);
             }
-            // For every sixth line:
+            // For every seventh line:
             else if (counts == (cleaningEndMarkers[i]))
             {
                 // Add the instance to the vector:
@@ -657,6 +705,7 @@ void cleanUpTrips()
             driverActivityData << cleaningVector2[i].day << endl;
             driverActivityData << cleaningVector2[i].month << endl;
             driverActivityData << cleaningVector2[i].year << endl;
+            driverActivityData << cleaningVector2[i].time << endl;
             driverActivityData << cleaningVector2[i].cost << endl;
             driverActivityData << "-----End of item-----" << endl;
         }
@@ -669,36 +718,188 @@ void cleanUpTrips()
 
     // Delete leftover cleaningTrips2 instances:
     delete cleaningTrips2;
+
+    /* Since we are counting the number of new customers registering each
+     * day and week, we will need to clean out any items in the
+     * newCustomerData file that are older than one week.
+     * As always, we start by storing the end markers in this file in a vector.
+     */
+    newCustomerData.open("newCustomerData.txt", ios::in);
+
+    while (getline(newCustomerData, customerLine))
+    {
+        // Count the lines being read:
+        counts++;
+
+        // Look for end markers and store them:
+        if (customerLine == "-----End of item-----")
+        {
+            cleaningEndMarkers.push_back(counts);
+        }
+    }
+    // Close the file:
+    newCustomerData.close();
+
+    // Reset the counter:
+    counts = 0;
+
+    // Create a new instance of the CustomerCount struct:
+    CustomerCount* newCount = new CustomerCount;
+
+    // Open the newCustomerData file:
+    newCustomerData.open("newCustomerData.txt", ios::in);
+
+    // Fill the instance:
+    while (getline(newCustomerData, customerLine))
+    {
+        // Count the lines being read:
+        counts++;
+
+        for (int i = 0; i < cleaningEndMarkers.size(); i++)
+        {
+            // For every first line:
+            if (counts == (cleaningEndMarkers[i] - 3))
+            {
+                newCount->day = stoi(customerLine);
+            }
+            // For every second line:
+            else if (counts == (cleaningEndMarkers[i] - 2))
+            {
+                newCount->month = stoi(customerLine);
+            }
+            // For every third line:
+            else if (counts == (cleaningEndMarkers[i] - 1))
+            {
+                newCount->year = stoi(customerLine);
+            }
+            // For every fourth line:
+            else if (counts == cleaningEndMarkers[i])
+            {
+                // Add the instance to the vector:
+                cleaningVector3.push_back(*newCount);
+
+                // Create a new instance:
+                CustomerCount* newCount = new CustomerCount;
+            }
+        }
+    }
+    // Close the file:
+    newCustomerData.close();
+
+    // Reset counter:
+    counts = 0;
+
+    // Clear the end marker vector:
+    cleaningEndMarkers.clear();
+
+    // Add the last instance to the vector:
+    cleaningVector3.push_back(*newCount);
+
+    // And then delete it, as it will be empty:
+    cleaningVector3.pop_back();
+
+    // Now that we've stored everything in a struct, we can re-write the newCustomerData file:
+    newCustomerData.open("newCustomerData.txt", ios::out);
+
+    for (int i = 0; i < cleaningVector3.size(); i++)
+    {
+        /* For each instance in the vector, find out if the date is more than a week ago
+         * and only print the contents if the date is more recent.
+         */
+        if (cleaningVector3[i].year < *lastWeekYearPtr)
+        {
+            cleaningVector3[i].tooOld = true;
+        }
+        else
+        {
+            // If the year isn't too far back, check the month:
+            if (cleaningVector3[i].year == *lastWeekYearPtr && cleaningVector3[i].month < *lastWeekMonthPtr)
+            {
+                cleaningVector3[i].tooOld = true;
+            }
+            else
+            {
+                // If the month isn't too far back, check the day:
+                if (cleaningVector3[i].year == *lastWeekYearPtr && cleaningVector3[i].month == *lastWeekMonthPtr && cleaningVector3[i].day < *lastWeekDayPtr)
+                {
+                    cleaningVector3[i].tooOld = true;
+                }
+                else
+                {
+                    cleaningVector3[i].tooOld = false;
+                }
+            }
+        }
+    }
+    // Printing loop:
+    for (int i = 0; i < cleaningVector3.size(); i++)
+    {
+        // Only print if tooOld is false:
+        if (cleaningVector3[i].tooOld == false)
+        {
+            newCustomerData << cleaningVector3[i].day << endl;
+            newCustomerData << cleaningVector3[i].month << endl;
+            newCustomerData << cleaningVector3[i].year << endl;
+            newCustomerData << "-----End of item-----" << endl;
+        }
+    }
+
+    // Close the file:
+    newCustomerData.close();
+
+    // Clear the cleaning vector:
+    cleaningVector3.clear();
+
+    // Delete leftover newCount instances:
+    delete newCount;
 }
 
 void introFunction()
 {
-    // Placeholder for the intro screen:
+    /* Header Section:
+     * Taxi modified from a car ASCII image "MACHO 2020" by The Animator on animasci.com
+     * License will be included with these programming files.
+     */
     cout << endl << endl;
-    cout << "\t                  ---" << endl;
-    cout << "\t                  | |" << endl;
-    cout << "\t                 ....." << endl;
-    cout << "\t           , ,''  |    ```...___," << endl;
-    cout << "\t    .--  ''  P(___|_______/    (|" << endl;
-    cout << "\t  ( //            |             |" << endl;
-    cout << "\t  ` ._: ' ' :_____|______: ' ' :/" << endl;
-    cout << "\t      '  o  '            '  o  '" << endl;
-    cout << "\t        - -                - - " << endl;
-    cout << "\t _____________________________________________" << endl;
-    cout << "\t _________Welcome to NZ Taxi Trip~!___________" << endl;
-    cout << "\t _____________________________________________" << endl << endl;
-    cout << "\t ________________T&C's Apply__________________" << endl << endl;
-    cout << "\t ________Customer Terms & Conditions__________" << endl;
-    cout << "1. Wear a face mask during your ride(can be temporarily removed for the purpose of drinking water from a bottle) \n unless you have a medical exemption(in which case you will need to provide proof of this)." << endl;
-    cout << "2. Do not ride with us if you are awaiting the results of a Covid test, suspect you may have Covid, \n or are currently showing cold or flu - like symptoms." << endl;
-    cout << "3. There is to be no consumption of hot food in the cab, nor any drinks that may spill." << endl;
+    cout << "\t\t\t                  ---" << endl;
+    cout << "\t\t\t                  | |" << endl;
+    cout << "\t\t\t                 ....." << endl;
+    cout << "\t\t\t           , ,''  |    ```...___," << endl;
+    cout << "\t\t\t    .--  ''  P(___|_______/    (|" << endl;
+    cout << "\t\t\t  ( //            |             |" << endl;
+    cout << "\t\t\t  ` ._: ' ' :_____|______: ' ' :/" << endl;
+    cout << "\t\t\t      '  o  '            '  o  '" << endl;
+    cout << "\t\t\t        - -                - - " << endl << endl;
+    cout << "\t\t\t______________________________________________" << endl << endl;
+    cout << "\t\t\t__________Welcome to NZ Taxi Trip~!___________" << endl;
+    cout << "\t\t\t______________________________________________" << endl << endl << endl;
 
-    cout << " __________Driver Terms& Conditions___________" << endl;
-    cout << "1. In order to drive for us, you will need to have had both Covid - 19 vaccinations." << endl;
-    cout << "2. Always wear a face mask when driving with a passenger(unless you have a medical exemption)." << endl;
-    cout << "3. You must be at least 22 years of age to drive for us." << endl;
-    cout << "4. Always conduct yourself in a polite and professional manner with customers." << endl;
-    cout << "5. All drivers who choose to participate in NZ Taxi Trip do so at their own discretion,\n as an independent contractor." << endl;
+    // Terms & Conditions Section:
+    cout << "\t\t\t________________T's & C's Apply_______________" << endl << endl << endl;
+
+    // Customer T's & C's:
+    cout << "\t\t\t_________Customer Terms & Conditions__________" << endl << endl;
+    cout << "\t\t1. Wear a face mask during your ride (can be temporarily removed" << endl;
+    cout << "\t\t   for the purpose of drinking water from a bottle) unless you have" << endl;
+    cout << "\t\t   a medical exemption (in which case you will need to provide proof" << endl;
+    cout << "\t\t   of this)." << endl;
+    cout << "\t\t2. Do not ride with us if you are awaiting the results of a Covid" << endl;
+    cout << "\t\t   test, suspect you may have Covid, or are currently showing cold or" << endl;
+    cout << "\t\t   flu-like symptoms." << endl;
+    cout << "\t\t3. There is to be no consumption of hot food in the cab, nor any drinks" << endl;
+    cout << "\t\t   that may spill." << endl << endl << endl;
+
+    // Driver T's & C's:
+    cout << "\t\t\t__________Driver Terms & Conditions___________" << endl << endl;
+    cout << "\t\t1. In order to drive for us, you will need to have had both Covid-19" << endl;
+    cout << "\t\t   vaccinations." << endl;
+    cout << "\t\t2. Always wear a face mask when driving with a passenger (unless you" << endl;
+    cout << "\t\t   have a medical exemption)." << endl;
+    cout << "\t\t3. You must be at least 22 years of age to drive for us." << endl;
+    cout << "\t\t4. Always conduct yourself in a polite and professional manner with" << endl;
+    cout << "\t\t   customers." << endl;
+    cout << "\t\t5. All drivers who choose to participate in NZ Taxi Trip do so at their" << endl;
+    cout << "\t\t   discretion, as an independent contractor." << endl << endl << endl << endl;
 
     // Use a function to determine the user's role:
     roleChoiceFunction();
@@ -800,28 +1001,134 @@ string roleChoiceFunction()
 // Customer LogIn Function:
 void customerLogIn()
 {
-    cout << "\n\n\n\t\t\t[Insert Customer LogIn Here]" << endl;
+    // Header Section:
+    cout << "\t\t___________________________________________________" << endl << endl;
+    cout << "\t\t---------------------------------------------------" << endl;
+    cout << "\t\t___________________________________________________" << endl << endl;
 
-    // TEMPORARY:
-    cout << endl << endl;
-    customerScreen();
+    cout << "\n\t\t\tCustomer LogIn" << endl << endl << endl;
+
+    // Fix the missed inputs issue:
+    cin.ignore();
+
+    // Obtain the login details:
+    cout << "\t\tPlease enter your email address: ";
+    getline(cin, *customerEmailLogInPtr);
+    cout << "\t\tPlease enter your password: ";
+    getline(cin, *customerPasswordPtr);
+
+    // Set login attempts to 0:
+    customerLogInAttempts = 0;
+
+    // Open and search customerData.txt for these details:
+    customerData.open("customerData.txt", ios::in);
+
+    // Set customerEmailLine to NULL first:
+    *customerEmailLinePtr = NULL;
+
+    // Search for the email address:
+    while (getline(customerData, customerLine))
+    {
+        if (customerLine == *customerEmailLogInPtr)
+        {
+            // If you find the email address, record how far down the data file it is:
+            *customerEmailLinePtr = customerLinesCounter;
+        }
+        // The confirmed password is located 1 line down from the email address:
+        else if (*customerEmailLinePtr != NULL && customerLinesCounter == (*customerEmailLinePtr + 1))
+        {
+            // Check if the password entered is incorrect:
+            while (*customerPasswordPtr != customerLine)
+            {
+                customerLogInAttempts++;
+                // Check if the user has used up all their attempts:
+                if (customerLogInAttempts >= 3)
+                {
+                    // Reset login attempts and make the user wait 10 seconds:
+                    customerLogInAttempts = 0;
+                    cout << "\n\t\tSorry. Incorrect password! Please try again after 10 seconds." << endl;
+
+                    // Create a timer for 1 minute:
+                    using namespace std::chrono_literals;
+                    std::cout << "\n\t\tWaiting...\n" << std::flush;
+                    auto start = std::chrono::high_resolution_clock::now();
+                    std::this_thread::sleep_for(10000ms);
+                    auto end = std::chrono::high_resolution_clock::now();
+                    std::chrono::duration<double, std::milli> elapsed = end - start;
+
+                    // After the timer is done, let them try again:
+                    cout << "\n\t\tPlease enter your password: ";
+                    getline(cin, *customerPasswordPtr);
+                    customerLogInAttempts++;
+                }
+                /* If the password entered is incorrect, tell the user this,
+                 * as well as how many attempts they have left to make:
+                 */
+                if (*customerPasswordPtr != customerLine)
+                {
+                    cout << "\n\t\tSorry. Incorrect password! Please try again." << endl;
+                    cout << "\t\tPlease enter your password: ";
+                    getline(cin, *customerPasswordPtr);
+                }
+            }
+            /* Once the password is correct...
+             * Reset the lines being read to zero and close the file:
+             */
+            customerLinesCounter = 0;
+            customerData.close();
+
+            // Tell the user they have successfully logged in, and take them to the Customer Screen:
+            cout << "\n\n\t\tLog in successful!" << endl;
+            customerScreen();
+        }
+        // Count the lines being read:
+        customerLinesCounter++;
+    }
+
+    // If, after searching through the whole file, the email address entered is not found:
+    if (*customerEmailLinePtr == NULL)
+    {
+        customerData.close();
+        cout << "\n\t\tSorry. That email address was not found. Do you want to register (type: register)" << endl;
+        cout << "\t\tor return to the home screen (type: home)? ";
+        cin >> *customerEmailNotFoundPtr;
+
+        // Make sure the input is valid:
+        while (*customerEmailNotFoundPtr != "register" && *customerEmailNotFoundPtr != "home" && *customerEmailNotFoundPtr != "Register" && *customerEmailNotFoundPtr != "Home")
+        {
+            cout << "\n\t\tSorry. Invalid input. Please type register or home: ";
+            cin >> *customerEmailNotFoundPtr;
+        }
+
+        // Act on valid input:
+        if (*customerEmailNotFoundPtr == "register" || *customerEmailNotFoundPtr == "Register")
+        {
+            customerRegistration();
+        }
+        else if (*customerEmailNotFoundPtr == "home" || *customerEmailNotFoundPtr == "Home")
+        {
+            introFunction();
+        }
+    }
 }
 
 // Customer Registration Function:
 void customerRegistration()
 {
-    Customer newCustomer;
-    // Registration Section:
-    cout << "\n\n\n\t\t___________________________________________________" << endl << endl;
+    // Header Section:
+    cout << "\n\n\t\t___________________________________________________" << endl << endl;
     cout << "\t\t---------------------------------------------------" << endl;
     cout << "\t\t___________________________________________________" << endl << endl;
 
-    cout << "\n\t\t\tRegistration" << endl << endl << endl;
+    cout << "\n\t\t\tCustomer Registration" << endl << endl << endl;
+
+    // Temporary Structure:
+    Customer newCustomer;
 
     // Fix the spaces causing missed inputs issue:
     cin.ignore();
 
-    // Gather Input:
+    // Gather input, starting with general information:
     cout << "\t\t\t|| General Information ||" << endl << endl;
     cout << "\t\tFull Name: ";
     getline(cin, newCustomer.fullName);
@@ -830,10 +1137,17 @@ void customerRegistration()
     cout << "\t\tPostal Address: ";
     getline(cin, newCustomer.postalAddress);
 
+    // Payment Information:
     cout << "\n\n\n\t\t\t|| Payment Information ||" << endl << endl;
-    cout << "\t\tPayment Method: ";
-    getline(cin, newCustomer.paymentMethod);
+    cout << "\t\tVisa Card Number: ";
+    getline(cin, newCustomer.cardNumber);
+    cout << "\t\tCard Expiry (dd/mm/yyyy): ";
+    cin >> newCustomer.cardExpiry;
+    cin.ignore();
+    cout << "\t\tCard CVC: ";
+    getline(cin, newCustomer.cardVerificationCode);
 
+    // Login Information:
     cout << "\n\n\n\t\t\t|| Account LogIn Information ||" << endl << endl;
     cout << "\t\tEmail Address: ";
     getline(cin, newCustomer.emailAddress);
@@ -842,6 +1156,7 @@ void customerRegistration()
     cout << "\t\tRe-enter Your Password: ";
     getline(cin, newCustomer.password2);
 
+    // Check if the passwords match:
     if (newCustomer.password1 == newCustomer.password2)
     {
         newCustomer.passwordConfirmed = newCustomer.password1;
@@ -861,17 +1176,64 @@ void customerRegistration()
         // Once they do match, confirm:
         newCustomer.passwordConfirmed = newCustomer.password1;
     }
-    // Enter details into the customerData.txt file:
 
+    // Enter details into the customerData.txt file:
     customerData.open("customerData.txt", ios::out | ios::app);
     customerData << newCustomer.fullName << endl;
     customerData << newCustomer.contactNumber << endl;
     customerData << newCustomer.postalAddress << endl;
-    customerData << newCustomer.paymentMethod << endl;
+    customerData << newCustomer.cardNumber << endl;
+    customerData << newCustomer.cardExpiry << endl;
+    customerData << newCustomer.cardVerificationCode << endl;
     customerData << newCustomer.emailAddress << endl;
     customerData << newCustomer.passwordConfirmed << endl;
     customerData << "-----End of item-----" << endl;
+
+    // Close the file:
     customerData.close();
+
+    /* For each new customer, mark the date of registration in the
+     * newCustomerData.txt file.
+     */
+    newCustomerData.open("newCustomerData.txt", ios::out | ios::app);
+
+    time_t now = time(0);
+    struct  tm* dt = localtime(&now);
+
+    // Add the day, month and year, and then an end marker:
+    newCustomerData << dt->tm_mday << endl;
+    newCustomerData << dt->tm_mon + 1 << endl;
+    newCustomerData << dt->tm_year + 1900 << endl;
+    newCustomerData << "-----End of item-----" << endl;
+
+    // Close the file:
+    newCustomerData.close();
+
+    // Tell the system that the user just registered:
+    *customerJustRegisteredPtr = true;
+
+    // Grab the email address of this new driver:
+    *newCustomerEmailPtr = newCustomer.emailAddress;
+
+    // We also need to find out what line this is on:
+    customerData.open("customerData.txt", ios::in);
+
+    while (getline(customerData, customerLine))
+    {
+        if (customerLine == *newCustomerEmailPtr)
+        {
+            *customerEmailLinePtr = customerScreenLineCounter;
+        }
+        customerScreenLineCounter++;
+    }
+    // Close the file:
+    driverData.close();
+
+    // Reset the counter:
+    customerScreenLineCounter = 1;
+
+    // Send the user to the customer screen:
+    customerScreen();
 }
 
 // Customer Screen:
@@ -895,6 +1257,23 @@ void customerScreen()
     cout << "\t\t______________________________________________" << endl << endl;
 
     cout << "\n\t\t\tWelcome, Customer!" << endl << endl;
+
+    // Create some local variables:
+    string customerScreenLine;
+    int customerScreenLineCounter = 1;
+
+    /* If the customer just registered, we need to access their email
+     * address using the global variable.
+     */
+    if (*customerJustRegisteredPtr == true)
+    {
+        *customerEmailLogInPtr = *newCustomerEmailPtr;
+    }
+    // Then reset the 'just registered' boolean to false:
+    *customerJustRegisteredPtr = false;
+
+    // Reset the counter:
+    customerScreenLineCounter = 1;
 
     // Standard Costs Section:
     cout << "\n\t\t\t|| Standard Costs ||" << endl << endl;
@@ -1007,7 +1386,81 @@ void priceEstimation()
 // Trip Booking Function:
 void tripBooking()
 {
-    cout << "\n\t\t\t[Insert Trip Booking Screen Here]" << endl;
+    // Header Section:
+    cout << "\n\t\t___________________________________________________" << endl << endl;
+    cout << "\t\t---------------------------------------------------" << endl;
+    cout << "\t\t___________________________________________________" << endl << endl;
+
+    cout << "\n\t\t\tTrip Booking" << endl << endl << endl;
+
+    // Create a temporary instance:
+    Trips newTrip;
+
+    // Fix the missed inputs issue:
+    cin.ignore();
+
+    // Gather input about this trip [INPUT GOES HERE]:
+    cout << "\t\tPlease enter your name: ";
+    getline(cin, newTrip.customerName);
+    cout << "\t\tPlease enter your starting location: ";
+    getline(cin, newTrip.startingPlace);
+    cout << "\t\tPlease enter your destination: ";
+    getline(cin, newTrip.destination);
+    cout << "\t\tPlease enter time: ";
+    getline(cin, newTrip.time);
+    cout << "\t\tPlease enter the number of people travelling: ";
+    getline(cin, newTrip.noOfPeople);
+    cout << "\t\tDo you need any extra support?: ";
+    getline(cin, newTrip.extraSupport);
+    cout << "\t\tDo you have any luggage?: ";
+    getline(cin, newTrip.luggage);
+    cout << "\t\tPlease enter your card number: ";
+    getline(cin, newTrip.visaCardNumber);
+    cout << "\t\tPlease enter your cards expiry date: ";
+    getline(cin, newTrip.cardExpiry);
+    cout << "\t\tPlease enter your cards CVC: ";
+    getline(cin, newTrip.cardCVC);
+
+    /* Generate a new trip number.
+     * If there isn't a tripNumberGenerator file yet,
+     * make one, and make the first trip number 0
+     * (it will soon be changed to 1).
+     */
+    tripNumberGenerator.open("tripNumberGenerator.txt", ios::out | ios::_Noreplace);
+
+    tripNumberGenerator << 0;
+
+    tripNumberGenerator.close();
+
+    // Read the file, and update its number by adding 1:
+    tripNumberGenerator.open("tripNumberGenerator.txt", ios::in);
+
+    int generatedTripNumber = 0;
+    string oneLine;
+
+    while (getline(tripNumberGenerator, oneLine))
+    {
+        generatedTripNumber = stoi(oneLine);
+    }
+    generatedTripNumber++;
+
+    // Close the file:
+    tripNumberGenerator.close();
+
+    // Open the file again in order to rewrite it with its new number:
+    tripNumberGenerator.open("tripNumberGenerator.txt", ios::out);
+
+    tripNumberGenerator << generatedTripNumber;
+
+    // Close the file:
+    tripNumberGenerator.close();
+
+    // Update the current struct instance:
+    newTrip.tripNumber = generatedTripNumber;
+
+    // Write to the tripData file [WRITING TO TRIPDATA GOES HERE]:
+
+    // Other stuff...
 }
 
 // Driver LogIn Function:
@@ -1034,6 +1487,9 @@ void driverLogIn()
 
     // Open and search driverData.txt for these details:
     driverData.open("driverData.txt", ios::in);
+
+    // Set driverEmailLine to NULL:
+    *driverEmailLinePtr = NULL;
 
     // Search for the email address:
     while (getline(driverData, driverLine))
@@ -1563,8 +2019,8 @@ void driverScreen()
                     i->validDate3 = false;
                 }
             }
-            // Now check the cost of each trip (4 lines down from the email address):
-            else if (reportLinesCounter == i->emailLine + 4)
+            // Now check the cost of each trip (5 lines down from the email address):
+            else if (reportLinesCounter == i->emailLine + 5)
             {
                 i->cost = stod(activityLine);
             }
@@ -2171,7 +2627,7 @@ void adminLogIn()
     cout << "\t\t---------------------------------------------------" << endl;
     cout << "\t\t___________________________________________________" << endl << endl << endl;
 
-    cout << "\t\t\tAdmin LogIn" << endl << endl << endl;;
+    cout << "\t\t\tAdmin LogIn" << endl << endl << endl;
 
     // Fix the missed inputs issue:
     cin.ignore();
@@ -2339,7 +2795,7 @@ void adminScreen()
             // Count the lines:
             lineCounter++;
 
-            if (lineCounter == (endMarkers[a]) - 4)
+            if (lineCounter == (endMarkers[a]) - 5)
             {
                 // Day:
                 if (stoi(activityLine) == dt->tm_mday)
@@ -2351,7 +2807,7 @@ void adminScreen()
                     dayValid = false;
                 }
             }
-            else if (lineCounter == (endMarkers[a]) - 3)
+            else if (lineCounter == (endMarkers[a]) - 4)
             {
                 // Month:
                 if (stoi(activityLine) == dt->tm_mon + 1)
@@ -2363,7 +2819,7 @@ void adminScreen()
                     monthValid = false;
                 }
             }
-            else if (lineCounter == (endMarkers[a]) - 2)
+            else if (lineCounter == (endMarkers[a]) - 3)
             {
                 // Year:
                 if (stoi(activityLine) == dt->tm_year + 1900)
@@ -2436,17 +2892,17 @@ void adminScreen()
             lineCounter++;
 
             // Check the day:
-            if (lineCounter == (endMarkers[i] - 4))
+            if (lineCounter == (endMarkers[i] - 5))
             {
                 dayToCheck = stoi(activityLine);
             }
             // Check the month:
-            else if (lineCounter == (endMarkers[i] - 3))
+            else if (lineCounter == (endMarkers[i] - 4))
             {
                 monthToCheck = stoi(activityLine);
             }
             // Check the year:
-            else if (lineCounter == (endMarkers[i] - 2))
+            else if (lineCounter == (endMarkers[i] - 3))
             {
                 yearToCheck = stoi(activityLine);
             }
