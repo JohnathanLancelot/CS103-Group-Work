@@ -164,6 +164,14 @@ struct Customer
     string passwordConfirmed;
 };
 
+struct CustomerCount
+{
+    int day = 0;
+    int month = 0;
+    int year = 0;
+    bool tooOld = false;
+};
+
 struct Driver
 {
     // General Information:
@@ -299,6 +307,7 @@ void cleanUpTrips()
     bool tooOld;
     vector<Trips>cleaningVector;
     vector<ClaimedTrips>cleaningVector2;
+    vector<CustomerCount>cleaningVector3;
     vector<int>cleaningEndMarkers;
 
     // Start the dates off as the same:
@@ -707,6 +716,140 @@ void cleanUpTrips()
 
     // Delete leftover cleaningTrips2 instances:
     delete cleaningTrips2;
+
+    /* Since we are counting the number of new customers registering each
+     * day and week, we will need to clean out any items in the 
+     * newCustomerData file that are older than one week.
+     * As always, we start by storing the end markers in this file in a vector.
+     */
+    newCustomerData.open("newCustomerData.txt", ios::in);
+
+    while (getline(newCustomerData, customerLine))
+    {
+        // Count the lines being read:
+        counts++;
+
+        // Look for end markers and store them:
+        if (customerLine == "-----End of item-----")
+        {
+            cleaningEndMarkers.push_back(counts);
+        }
+    }
+    // Close the file:
+    newCustomerData.close();
+
+    // Reset the counter:
+    counts = 0;
+
+    // Create a new instance of the CustomerCount struct:
+    CustomerCount *newCount = new CustomerCount;
+
+    // Open the newCustomerData file:
+    newCustomerData.open("newCustomerData.txt", ios::in);
+
+    // Fill the instance:
+    while (getline(newCustomerData, customerLine))
+    {
+        // Count the lines being read:
+        counts++;
+
+        for (int i = 0; i < cleaningEndMarkers.size(); i++)
+        {
+            // For every first line:
+            if (counts == (cleaningEndMarkers[i] - 3))
+            {
+                newCount->day = stoi(customerLine);
+            }
+            // For every second line:
+            else if (counts == (cleaningEndMarkers[i] - 2))
+            {
+                newCount->month = stoi(customerLine);
+            }
+            // For every third line:
+            else if (counts == (cleaningEndMarkers[i] - 1))
+            {
+                newCount->year = stoi(customerLine);
+            }
+            // For every fourth line:
+            else if (counts == cleaningEndMarkers[i])
+            {
+                // Add the instance to the vector:
+                cleaningVector3.push_back(*newCount);
+
+                // Create a new instance:
+                CustomerCount* newCount = new CustomerCount;
+            }
+        }
+    }
+    // Close the file:
+    newCustomerData.close();
+
+    // Reset counter:
+    counts = 0;
+
+    // Clear the end marker vector:
+    cleaningEndMarkers.clear();
+
+    // Add the last instance to the vector:
+    cleaningVector3.push_back(*newCount);
+
+    // And then delete it, as it will be empty:
+    cleaningVector3.pop_back();
+
+    // Now that we've stored everything in a struct, we can re-write the newCustomerData file:
+    newCustomerData.open("newCustomerData.txt", ios::out);
+
+    for (int i = 0; i < cleaningVector3.size(); i++)
+    {
+        /* For each instance in the vector, find out if the date is more than a week ago
+         * and only print the contents if the date is more recent.
+         */
+        if (cleaningVector3[i].year < *lastWeekYearPtr)
+        {
+            cleaningVector3[i].tooOld = true;
+        }
+        else
+        {
+            // If the year isn't too far back, check the month:
+            if (cleaningVector3[i].year == *lastWeekYearPtr && cleaningVector3[i].month < *lastWeekMonthPtr)
+            {
+                cleaningVector3[i].tooOld = true;
+            }
+            else
+            {
+                // If the month isn't too far back, check the day:
+                if (cleaningVector3[i].year == *lastWeekYearPtr && cleaningVector3[i].month == *lastWeekMonthPtr && cleaningVector3[i].day < *lastWeekDayPtr)
+                {
+                    cleaningVector3[i].tooOld = true;
+                }
+                else
+                {
+                    cleaningVector3[i].tooOld = false;
+                }
+            }
+        }
+    }
+    // Printing loop:
+    for (int i = 0; i < cleaningVector3.size(); i++)
+    {
+        // Only print if tooOld is false:
+        if (cleaningVector3[i].tooOld == false)
+        {
+            newCustomerData << cleaningVector3[i].day << endl;
+            newCustomerData << cleaningVector3[i].month << endl;
+            newCustomerData << cleaningVector3[i].year << endl;
+            newCustomerData << "-----End of item-----" << endl;
+        }
+    }
+
+    // Close the file:
+    newCustomerData.close();
+
+    // Clear the cleaning vector:
+    cleaningVector3.clear();
+
+    // Delete leftover newCount instances:
+    delete newCount;
 }
 
 void introFunction()
@@ -1046,6 +1189,23 @@ void customerRegistration()
 
     // Close the file:
     customerData.close();
+
+    /* For each new customer, mark the date of registration in the
+     * newCustomerData.txt file.
+     */
+    newCustomerData.open("newCustomerData.txt", ios::out | ios::app);
+
+    time_t now = time(0);
+    struct  tm* dt = localtime(&now);
+
+    // Add the day, month and year, and then an end marker:
+    newCustomerData << dt->tm_mday << endl;
+    newCustomerData << dt->tm_mon + 1 << endl;
+    newCustomerData << dt->tm_year + 1900 << endl;
+    newCustomerData << "-----End of item-----" << endl;
+
+    // Close the file:
+    newCustomerData.close();
 
     // Tell the system that the user just registered:
     *customerJustRegisteredPtr = true;
