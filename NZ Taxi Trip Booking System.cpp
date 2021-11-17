@@ -1,7 +1,6 @@
 /* Authors: Jade Brown & Johnathan Worrall
  * Assignment: CS103 Group Project
  * Project Name: NZ Taxi Trip Booking System
- * This is Johnathan
  */
 
 #define _CRT_SECURE_NO_WARNINGS
@@ -152,7 +151,7 @@ struct Customer
 
     // Payment Information:
     string cardNumber;
-    char cardExpiry[10];
+    char cardExpiry[10] = " ";
     string cardVerificationCode;
 
     // Login Information:
@@ -202,6 +201,7 @@ struct ClaimedTrips
     int day = 0;
     int month = 0;
     int year = 0;
+    string time;
     double cost = 0.00;
     bool validDate1 = false;
     bool validDate2 = false;
@@ -560,7 +560,7 @@ void cleanUpTrips()
     delete cleaningTrips;
     counts = 0;
 
-    // First, lets look for end markers in the driverActivityData file:
+    // First, let's look for end markers in the driverActivityData file:
     driverActivityData.open("driverActivityData.txt", ios::in);
 
     while (getline(driverActivityData, tripLines))
@@ -592,31 +592,36 @@ void cleanUpTrips()
         for (int i = 0; i < cleaningEndMarkers.size(); i++)
         {
             // For every first line:
-            if (counts == (cleaningEndMarkers[i] - 5))
+            if (counts == (cleaningEndMarkers[i] - 6))
             {
                 cleaningTrips2->emailAddress = tripLines;
             }
             // For every second line:
-            else if (counts == (cleaningEndMarkers[i] - 4))
+            else if (counts == (cleaningEndMarkers[i] - 5))
             {
                 cleaningTrips2->day = stoi(tripLines);
             }
             // For every third line:
-            else if (counts == (cleaningEndMarkers[i] - 3))
+            else if (counts == (cleaningEndMarkers[i] - 4))
             {
                 cleaningTrips2->month = stoi(tripLines);
             }
             // For every fourth line:
-            else if (counts == (cleaningEndMarkers[i] - 2))
+            else if (counts == (cleaningEndMarkers[i] - 3))
             {
                 cleaningTrips2->year = stoi(tripLines);
             }
             // For every fifth line:
+            else if (counts == (cleaningEndMarkers[i] - 2))
+            {
+                cleaningTrips2->time = tripLines;
+            }
+            // For every sixth line:
             else if (counts == (cleaningEndMarkers[i] - 1))
             {
                 cleaningTrips2->cost = stod(tripLines);
             }
-            // For every sixth line:
+            // For every seventh line:
             else if (counts == (cleaningEndMarkers[i]))
             {
                 // Add the instance to the vector:
@@ -678,6 +683,7 @@ void cleanUpTrips()
             driverActivityData << cleaningVector2[i].day << endl;
             driverActivityData << cleaningVector2[i].month << endl;
             driverActivityData << cleaningVector2[i].year << endl;
+            driverActivityData << cleaningVector2[i].time << endl;
             driverActivityData << cleaningVector2[i].cost << endl;
             driverActivityData << "-----End of item-----" << endl;
         }
@@ -1776,8 +1782,8 @@ void driverScreen()
                     i->validDate3 = false;
                 }
             }
-            // Now check the cost of each trip (4 lines down from the email address):
-            else if (reportLinesCounter == i->emailLine + 4)
+            // Now check the cost of each trip (5 lines down from the email address):
+            else if (reportLinesCounter == i->emailLine + 5)
             {
                 i->cost = stod(activityLine);
             }
@@ -2552,7 +2558,7 @@ void adminScreen()
             // Count the lines:
             lineCounter++;
 
-            if (lineCounter == (endMarkers[a]) - 4)
+            if (lineCounter == (endMarkers[a]) - 5)
             {
                 // Day:
                 if (stoi(activityLine) == dt->tm_mday)
@@ -2564,7 +2570,7 @@ void adminScreen()
                     dayValid = false;
                 }
             }
-            else if (lineCounter == (endMarkers[a]) - 3)
+            else if (lineCounter == (endMarkers[a]) - 4)
             {
                 // Month:
                 if (stoi(activityLine) == dt->tm_mon + 1)
@@ -2576,7 +2582,7 @@ void adminScreen()
                     monthValid = false;
                 }
             }
-            else if (lineCounter == (endMarkers[a]) - 2)
+            else if (lineCounter == (endMarkers[a]) - 3)
             {
                 // Year:
                 if (stoi(activityLine) == dt->tm_year + 1900)
@@ -2649,17 +2655,17 @@ void adminScreen()
             lineCounter++;
 
             // Check the day:
-            if (lineCounter == (endMarkers[i] - 4))
+            if (lineCounter == (endMarkers[i] - 5))
             {
                 dayToCheck = stoi(activityLine);
             }
             // Check the month:
-            else if (lineCounter == (endMarkers[i] - 3))
+            else if (lineCounter == (endMarkers[i] - 4))
             {
                 monthToCheck = stoi(activityLine);
             }
             // Check the year:
-            else if (lineCounter == (endMarkers[i] - 2))
+            else if (lineCounter == (endMarkers[i] - 3))
             {
                 yearToCheck = stoi(activityLine);
             }
