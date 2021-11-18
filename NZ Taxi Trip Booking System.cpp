@@ -241,11 +241,9 @@ struct Trips
     bool available = true;
     Trips* nextPosition = NULL;
 
-
-
     /* This will help us only print the trips booked
-    * for the present or future.
-    */
+     * for the present or future.
+     */
     bool past = false;
 };
 
@@ -1395,72 +1393,100 @@ void tripBooking()
 
     // Create a temporary instance:
     Trips newTrip;
-
-    // Fix the missed inputs issue:
-    cin.ignore();
-
-    // Gather input about this trip [INPUT GOES HERE]:
-    cout << "\t\tPlease enter your name: ";
-    getline(cin, newTrip.customerName);
-    cout << "\t\tPlease enter your starting location: ";
-    getline(cin, newTrip.startingPlace);
-    cout << "\t\tPlease enter your destination: ";
-    getline(cin, newTrip.destination);
-    cout << "\t\tPlease enter time: ";
-    getline(cin, newTrip.time);
-    cout << "\t\tPlease enter the number of people travelling: ";
-    getline(cin, newTrip.noOfPeople);
-    cout << "\t\tDo you need any extra support?: ";
-    getline(cin, newTrip.extraSupport);
-    cout << "\t\tDo you have any luggage?: ";
-    getline(cin, newTrip.luggage);
-    cout << "\t\tPlease enter your card number: ";
-    getline(cin, newTrip.visaCardNumber);
-    cout << "\t\tPlease enter your cards expiry date: ";
-    getline(cin, newTrip.cardExpiry);
-    cout << "\t\tPlease enter your cards CVC: ";
-    getline(cin, newTrip.cardCVC);
-
-    /* Generate a new trip number.
-     * If there isn't a tripNumberGenerator file yet,
-     * make one, and make the first trip number 0
-     * (it will soon be changed to 1).
-     */
-    tripNumberGenerator.open("tripNumberGenerator.txt", ios::out | ios::_Noreplace);
-
-    tripNumberGenerator << 0;
-
-    tripNumberGenerator.close();
-
-    // Read the file, and update its number by adding 1:
-    tripNumberGenerator.open("tripNumberGenerator.txt", ios::in);
-
-    int generatedTripNumber = 0;
-    string oneLine;
-
-    while (getline(tripNumberGenerator, oneLine))
-    {
-        generatedTripNumber = stoi(oneLine);
+    bool cancel;
+    cout << "would you like to book a trip, or cancel an existing one";
+    cin >> cancel;
+    if (cancel = "Cancel") {
+        cancellations();
     }
-    generatedTripNumber++;
+    else {
+        // Fix the missed inputs issue:
+        cin.ignore();
 
-    // Close the file:
-    tripNumberGenerator.close();
+        // Gather input about this trip:
+        cout << "\t\tPlease enter your full name: ";
+        getline(cin, newTrip.customerName);
+        cout << "\n\t\tPlease enter your starting location: ";
+        getline(cin, newTrip.startingPlace);
+        cout << "\n\t\tPlease enter your destination: ";
+        getline(cin, newTrip.destination);
+        cout << "\n\t\tPlease enter the time you want to be picked up: ";
+        getline(cin, newTrip.time);
+        cout << "\n\t\tPlease enter the number of people travelling: ";
+        cin >> newTrip.noOfPeople;
+        cin.ignore();
+        cout << "\n\t\tDo you need any extra support?" << endl;
+        cout << "\t\tPlease specify: ";
+        getline(cin, newTrip.extraSupport);
+        cout << "\n\t\tDo you have any luggage?" << endl;
+        cout << "\t\tPlease specify if it is normal, " << endl;
+        cout << "\t\tlarge and / or heavy: ";
+        getline(cin, newTrip.luggage);
 
-    // Open the file again in order to rewrite it with its new number:
-    tripNumberGenerator.open("tripNumberGenerator.txt", ios::out);
+        // Note for later: Possibly look into obtaining these from what's already on file
+        // in the customerData file from registration, but only after the other stuff is done.
+        cout << "\n\t\tPlease enter your Visa card number: ";
+        getline(cin, newTrip.visaCardNumber);
+        cout << "\n\t\tPlease enter your card's expiry date: ";
+        getline(cin, newTrip.cardExpiry);
+        cout << "\n\t\tPlease enter your card's CVC: ";
+        getline(cin, newTrip.cardCVC);
 
-    tripNumberGenerator << generatedTripNumber;
+        /* Generate a new trip number.
+         * If there isn't a tripNumberGenerator file yet,
+        * make one, and make the first trip number 0
+        * (it will soon be changed to 1).
+        */  
+        tripNumberGenerator.open("tripNumberGenerator.txt", ios::out | ios::_Noreplace);
 
-    // Close the file:
-    tripNumberGenerator.close();
+        tripNumberGenerator << 0;
 
-    // Update the current struct instance:
-    newTrip.tripNumber = generatedTripNumber;
+        tripNumberGenerator.close();
 
-    // Write to the tripData file [WRITING TO TRIPDATA GOES HERE]:
+        // Read the file, and update its number by adding 1:
+        tripNumberGenerator.open("tripNumberGenerator.txt", ios::in);
 
-    // Other stuff...
+        int generatedTripNumber = 0;
+        string oneLine;
+
+        while (getline(tripNumberGenerator, oneLine))
+        {
+            generatedTripNumber = stoi(oneLine);
+        }
+        generatedTripNumber++;
+
+        // Close the file:
+        tripNumberGenerator.close();
+
+        // Open the file again in order to rewrite it with its new number:
+        tripNumberGenerator.open("tripNumberGenerator.txt", ios::out);
+
+        tripNumberGenerator << generatedTripNumber;
+
+        // Close the file:
+        tripNumberGenerator.close();
+
+        // Update the current struct instance:
+        newTrip.tripNumber = generatedTripNumber;
+
+        // Open and search tripBookings.txt for these details:
+        tripData.open("tripBookings.txt", ios::in);
+
+        // Write to the tripData file [WRITING TO TRIPDATA GOES HERE]:
+        tripData.open("tripBookings.txt", ios::out | ios::app);
+        tripData << newTrip.customerName << endl;
+        tripData << newTrip.startingPlace << endl;
+        tripData << newTrip.destination << endl;
+        tripData << newTrip.time << endl;
+        tripData << newTrip.noOfPeople << endl;
+        tripData << newTrip.extraSupport << endl;
+        tripData << newTrip.luggage << endl;
+        tripData << newTrip.visaCardNumber << endl;
+        tripData << newTrip.cardExpiry << endl;
+        tripData << newTrip.cardCVC << endl;
+        tripData << "-----End of item-----" << endl;
+        // Other stuff...
+    }
 }
 
 // Driver LogIn Function:
@@ -2987,5 +3013,8 @@ void adminScreen()
     }
 }
 
+void cancellations() {
+};
+
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
+// Debug program: F5 or Debug > Start Debugging menu                                                                                                                
