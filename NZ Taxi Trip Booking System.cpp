@@ -2768,6 +2768,11 @@ void adminScreen()
     int monthToCheck;
     int yearToCheck;
     int adminChoice;
+    int weeklyNewCustomers = 0;
+    int dailyNewCustomers = 0;
+    int customerRegistrationDay = 0;
+    int customerRegistrationMonth = 0;
+    int customerRegistrationYear = 0;
     double totalCustomerPayments = 0;
     double cost = 0;
     bool dayValid = false;
@@ -2960,12 +2965,124 @@ void adminScreen()
     // Net income earned by all drivers today:
     cout << "\t\tCombined Net Earnings for Drivers      : " << totalCustomerPayments - (totalCustomerPayments * 0.152) << endl << endl << endl;
 
-    // Weekly Driver Report:
+    // Customer Report:
     cout << "\n\t\t\t|| Customer Report ||" << endl << endl;
+
+    /* Search through the newCustomerData file and count the number of items with today's date, 
+     * as well as the total number of items:
+     */
+    newCustomerData.open("newCustomerData.txt", ios::in);
+
+    // Clear the end markers vector so we can use it again:
+    endMarkers.clear();
+
+    // Reset the counter:
+    lineCounter = 0;
+
+    while (getline(newCustomerData, customerLine))
+    {
+        // Count the lines being read:
+        lineCounter++;
+
+        // Look for end markers:
+        if (customerLine == "-----End of item-----")
+        {
+            // Add to the weekly new customers sum:
+            weeklyNewCustomers++;
+
+            // Add the location to the endMarkers vector:
+            endMarkers.push_back(lineCounter);
+        }
+    }
+    // Close the file:
+    newCustomerData.close();
+
+    // Reset the counter as well as the date validations:
+    lineCounter = 0;
+    dayValid = false;
+    monthValid = false;
+    yearValid = false;
+
+    // Open the file again and read each line:
+    newCustomerData.open("newCustomerData.txt", ios::in);
+
+    while (getline(newCustomerData, customerLine))
+    {
+        // Count the lines being read:
+        lineCounter++;
+
+        // Go through the vector of end markers to read each item's info:
+        for (int i = 0; i < endMarkers.size(); i++)
+        {
+            // For every first line:
+            if (lineCounter == (endMarkers[i] - 3))
+            {
+                customerRegistrationDay = stoi(customerLine);
+            }
+            // For every second line:
+            else if (lineCounter == (endMarkers[i] - 2))
+            {
+                customerRegistrationMonth = stoi(customerLine);
+            }
+            // For every third line:
+            else if (lineCounter == (endMarkers[i] - 1))
+            {
+                customerRegistrationYear = stoi(customerLine);
+            }
+            // For every fourth line:
+            else if (lineCounter == endMarkers[i])
+            {
+                // Find out if the date is today, starting with the day:
+                if (customerRegistrationDay == dt->tm_mday)
+                {
+                    dayValid = true;
+                }
+                else
+                {
+                    dayValid = false;
+                }
+                // Then check the month:
+                if (customerRegistrationMonth == dt->tm_mon + 1)
+                {
+                    monthValid = true;
+                }
+                else
+                {
+                    monthValid = false;
+                }
+                // Then check the year:
+                if (customerRegistrationYear == dt->tm_year + 1900)
+                {
+                    yearValid = true;
+                }
+                else
+                {
+                    yearValid = false;
+                }
+                // If all 3 are valid, add to the number of daily customers:
+                if (dayValid == true && monthValid == true && yearValid == true)
+                {
+                    dailyNewCustomers++;
+                }
+            }
+        }
+    }
+    // Close the file, reset the counter and clear the vector:
+    newCustomerData.close();
+    lineCounter = 0;
+    endMarkers.clear();
+
+    // Confirm the number of new customers today:
+    *noOfNewCustomersTodayPtr = dailyNewCustomers;
+
+    // Confirm the number of new customers this week:
+    *noOfNewCustomersThisWeekPtr = weeklyNewCustomers;
 
     // Print the number of new customers today and this week:
     cout << "\t\tNumber of New Customers Today          : " << *noOfNewCustomersTodayPtr << endl;
     cout << "\t\tNumber of New Customers This Week      : " << *noOfNewCustomersThisWeekPtr << endl;
+
+    // Print the number of trip cancellations today and this week:
     cout << "\t\tNumber of Trip Cancellations Today     : " << *noOfCancellationsDailyPtr << endl;
     cout << "\t\tNumber of Trip Cancellations This Week : " << *noOfCancellationsWeeklyPtr << endl << endl << endl;
 
