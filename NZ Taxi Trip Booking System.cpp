@@ -248,7 +248,7 @@ struct Trips
 };
 
 // Functions:
-void cleanUpTrips();
+void cleanUpData();
 void introFunction();
 string roleChoiceFunction();
 void customerLogIn();
@@ -282,13 +282,13 @@ int main()
     adminData.close();
 
     // Clean up the trips file, deleting any trips older than a week:
-    cleanUpTrips();
+    cleanUpData();
 
     // Start the program with the intro:
     introFunction();
 }
 
-void cleanUpTrips()
+void cleanUpData()
 {
     /* First, we'll need to calculate what the date was last week,
      * so we'll obtain today's date...
