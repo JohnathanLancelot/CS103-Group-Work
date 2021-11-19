@@ -1616,15 +1616,16 @@ void tripBooking()
     cout << "\n\t\t\tTrip Booking" << endl << endl << endl;
 
     // Create a temporary instance:
+    double distanceKM;
     Trips newTrip;
     newTrip.paymentStatus;
-    bool cancel;
-    cout << "would you like to book a trip, or cancel an existing one";
+    char cancel;
+    cout << "would you like to book a trip, or cancel an existing one (B/C)";
     cin >> cancel;
-    if (cancel = "Cancel") {
+    if (cancel  == 'C') {
         tripCancellation();
     }
-    else {
+    else if (cancel == 'B') {
         // Fix the missed inputs issue:
         cin.ignore();
 
@@ -1635,11 +1636,11 @@ void tripBooking()
         getline(cin, newTrip.startingPlace);
         cout << "\n\t\tPlease enter your destination: ";
         getline(cin, newTrip.destination);
-        cout << "\n\t\tPlease enter the time you want to be picked up: ";
-        getline(cin, newTrip.time);
+        cout << "\n\t\tHow far are you travelling in kilometers?" << endl;
+        cout << "\t\t(please do not include 'km'): ";
+        cin >> distanceKM;
         cout << "\n\t\tPlease enter the number of people travelling: ";
         cin >> newTrip.noOfPeople;
-        cin.ignore();
         cout << "\n\t\tDo you need any extra support?" << endl;
         cout << "\t\tPlease specify: ";
         getline(cin, newTrip.extraSupport);
@@ -1711,37 +1712,35 @@ void tripBooking()
         tripData << newTrip.cardCVC << endl;
         tripData << "-----End of item-----" << endl;
         // Other stuff...
+
+        cout << "Base fare: " << *baseFarePtr << endl;
+        cout << "Cost per KM: " << *costPerKmPtr << endl;
+        cout << "Distance to be travelled: " << distanceKM << endl;
+        cout << (newTrip.destination) << endl;
+        cout << "Total cost:" << *baseFarePtr + (distanceKM * *costPerKmPtr) << endl;
+
+
+
         newTrip.paymentStatus;
-        double paid;
-        cout << "\n\t\tPlease pay for your trip, your total cost is" << *baseFarePtr + (*estimateDistancePtr * *costPerKmPtr);
+        char paid ;
+        cout << "\n\t\tWould you like to confirm your trip, or cancel it (Y/N)";
         cin >> paid;
-        if (paid = *baseFarePtr + (*estimateDistancePtr * *costPerKmPtr)) {
+        if (paid == 'Y') {
             newTrip.paymentStatus = true;
         }
-        else {
+        else if (paid == 'N'){
             newTrip.paymentStatus = false;
         }
 
     }
-    if (newTrip.paymentStatus = true); {
-        billPrinting();
+    if (newTrip.paymentStatus == true); {
+        cout << "Thank you for confirming payment, enjoy your trip~!!!";
     }
-    if (newTrip.paymentStatus = false){
-        customerScreen;
+    if (newTrip.paymentStatus == false){
+        customerScreen();
     }
 }
 
-// Bill Printing Function
-void billPrinting()
-{
-    Trips newTrip;
-
-    cout << (newTrip.customerName);
-    cout << (newTrip.time);
-    cout << (newTrip.startingPlace);
-    cout << (newTrip.destination);
-    cout << *baseFarePtr + (*estimateDistancePtr * *costPerKmPtr);
-}
 void tripCancellation()
 {
     // Header Section:

@@ -1,7 +1,7 @@
 ﻿  NZ Taxi Trip Booking System.cpp
-C:\Users\jadet\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(1412,12): warning C4102: 'getline': unreferenced label
-C:\Users\jadet\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(2363,9): warning C4101: 'convertedMonthOfYear': unreferenced local variable
-C:\Users\jadet\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(2362,9): warning C4101: 'convertedDayOfMonth': unreferenced local variable
-C:\Users\jadet\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(2364,9): warning C4101: 'convertedYear': unreferenced local variable
-C:\Users\jadet\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(999): warning C4715: 'roleChoiceFunction': not all control paths return a value
+C:\Users\jadet\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(1738,39): warning C4390: ';': empty controlled statement found; is this the intent?
+C:\Users\jadet\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(3320,9): warning C4101: 'convertedMonthOfYear': unreferenced local variable
+C:\Users\jadet\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(3319,9): warning C4101: 'convertedDayOfMonth': unreferenced local variable
+C:\Users\jadet\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(3321,9): warning C4101: 'convertedYear': unreferenced local variable
+C:\Users\jadet\CS103-Group-Work\NZ Taxi Trip Booking System.cpp(1212): warning C4715: 'roleChoiceFunction': not all control paths return a value
   NZ Taxi Trip Booking System.vcxproj -> C:\Users\jadet\CS103-Group-Work\x64\Debug\NZ Taxi Trip Booking System.exe
