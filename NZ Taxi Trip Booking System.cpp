@@ -1561,7 +1561,7 @@ void tripBooking()
 void tripCancellation()
 {
     // Header Section:
-    cout << "\t\t___________________________________________________" << endl << endl;
+    cout << "\n\n\t\t___________________________________________________" << endl << endl;
     cout << "\t\t---------------------------------------------------" << endl;
     cout << "\t\t___________________________________________________" << endl << endl;
 
@@ -1572,6 +1572,7 @@ void tripCancellation()
     int emailLineForCancellation = 0;
     int* emailLineForCancellationPtr = &emailLineForCancellation;
     int tripFoundIndex = 0;
+    int multiplyNineteen = 0;
     bool tripFound = false;
     bool dayValid = true;
     bool monthValid = true;
@@ -1580,8 +1581,10 @@ void tripCancellation()
     string fullName;
     string tripNotFoundOption;
     string tripInPastOption;
+    string cancelAnother;
     vector<int>fullNameLines;
     vector<Trips>preCancellationVector;
+    vector<Trips>wholeFileVector;
 
     // Allow us to use time:
     time_t now = time(0);
@@ -1818,13 +1821,13 @@ void tripCancellation()
     }
 
     // Ask the user which trip they want to cancel:
-    cout << "Which trip would you like to cancel? Trip no. ";
+    cout << "\t\tWhich trip would you like to cancel? Trip no. ";
     cin >> *tripToCancelPtr;
 
     // Check if this trip is one of the user's booked trips:
     for (int i = 0; i < preCancellationVector.size(); i++)
     {
-        if (preCancellationVector[i].tripNumber == *tripToClaimPtr)
+        if (preCancellationVector[i].tripNumber == *tripToCancelPtr)
         {
             tripFound = true;
 
@@ -1832,7 +1835,6 @@ void tripCancellation()
             tripFoundIndex = i;
         }
     }
-    cin.ignore();
 
     // If the trip isn't found, tell the user this:
     if (tripFound == false)
@@ -1843,10 +1845,20 @@ void tripCancellation()
         // Act on input:
         if (tripNotFoundOption == "y")
         {
+            // Clean up the data first:
+            fullNameLines.clear();
+            preCancellationVector.clear();
+            delete newTrip;
+
             tripCancellation();
         }
         else if (tripNotFoundOption == "n")
         {
+            // Clean up the data first:
+            fullNameLines.clear();
+            preCancellationVector.clear();
+            delete newTrip;
+
             // Back to the customer screen:
             customerScreen();
         }
@@ -1859,10 +1871,20 @@ void tripCancellation()
         // Act on input, once valid:
         if (tripNotFoundOption == "y")
         {
+            // Clean up the data first:
+            fullNameLines.clear();
+            preCancellationVector.clear();
+            delete newTrip;
+
             tripCancellation();
         }
         else if (tripNotFoundOption == "n")
         {
+            // Clean up the data first:
+            fullNameLines.clear();
+            preCancellationVector.clear();
+            delete newTrip;
+
             // Back to the customer screen:
             customerScreen();
         }
@@ -1896,9 +1918,6 @@ void tripCancellation()
         preCancellationVector[tripFoundIndex].past = true;
     }
 
-    // Avoid missed inputs:
-    cin.ignore();
-
     // If the trip is in the past, tell the user this:
     if (preCancellationVector[tripFoundIndex].past == true)
     {
@@ -1908,34 +1927,292 @@ void tripCancellation()
         // Act on input:
         if (tripInPastOption == "y")
         {
+            // Clean up the data first:
+            fullNameLines.clear();
+            preCancellationVector.clear();
+
             tripCancellation();
         }
         else if (tripInPastOption == "n")
         {
+            // Clean up the data first:
+            fullNameLines.clear();
+            preCancellationVector.clear();
+
             // Back to the customer screen:
             customerScreen();
         }
-
-        // Deal with invalid inputs:
-        while (tripInPastOption != "y" && tripInPastOption != "n")
+        else
         {
-            cout << "\n\t\tSorry! Invalid input. Please type y or n: ";
-            getline(cin, tripInPastOption);
-        }
+            // Deal with invalid inputs:
+            while (tripInPastOption != "y" && tripInPastOption != "n")
+            {
+                cout << "\n\t\tSorry! Invalid input. Please type y or n: ";
+                getline(cin, tripInPastOption);
+            }
+            // Once valid, act on it:
+            if (tripInPastOption == "y")
+            {
+                // Clean up the data first:
+                fullNameLines.clear();
+                preCancellationVector.clear();
 
-        // Once valid, act on it:
-        if (tripInPastOption == "y")
+                tripCancellation();
+            }
+            else if (tripInPastOption == "n")
+            {
+                // Clean up the data first:
+                fullNameLines.clear();
+                preCancellationVector.clear();
+
+                // Back to the customer screen:
+                customerScreen();
+            }
+        }
+    }
+
+    // Reset line counter:
+    counter = 0;
+
+    // Create a temporary instance of the Trips structure:
+    Trips* tripStored = new Trips;
+
+    // If the trip isn't in the past, cancel it:
+    tripData.open("tripData.txt", ios::in);
+
+    /* First, we need to read every single line in the tripData file,
+     * and assign it to a vector.
+     */
+    while (getline(tripData, line))
+    {
+        // Count the lines being read:
+        counter++;
+
+        // For every first line:
+        if (counter == (multiplyNineteen * 19) + 1)
+        {
+            tripStored->tripNumber = stoi(line);
+        }
+        // For every second line:
+        else if (counter == (multiplyNineteen * 19) + 2)
+        {
+            tripStored->customerName = line;
+        }
+        // For every third line:
+        else if (counter == (multiplyNineteen * 19) + 3)
+        {
+            tripStored->customerContactNumber = line;
+        }
+        // For every fourth line:
+        else if (counter == (multiplyNineteen * 19) + 4)
+        {
+            tripStored->startingPlace = line;
+        }
+        // For every fifth line:
+        else if (counter == (multiplyNineteen * 19) + 5)
+        {
+            tripStored->destination = line;
+        }
+        // For every sixth line:
+        else if (counter == (multiplyNineteen * 19) + 6)
+        {
+            tripStored->tripDate[0] = stoi(line);
+        }
+        // For every seventh line:
+        else if (counter == (multiplyNineteen * 19) + 7)
+        {
+            tripStored->tripDate[1] = stoi(line);
+        }
+        // For every eighth line:
+        else if (counter == (multiplyNineteen * 19) + 8)
+        {
+            tripStored->tripDate[2] = stoi(line);
+        }
+        // For every ninth line:
+        else if (counter == (multiplyNineteen * 19) + 9)
+        {
+            tripStored->time = line;
+        }
+        // For every tenth line:
+        else if (counter == (multiplyNineteen * 19) + 10)
+        {
+            tripStored->noOfPeople = stoi(line);
+        }
+        // For every eleventh line:
+        else if (counter == (multiplyNineteen * 19) + 11)
+        {
+            tripStored->extraSupport = line;
+        }
+        // For every twelth line:
+        else if (counter == (multiplyNineteen * 19) + 12)
+        {
+            tripStored->luggage = line;
+        }
+        // For every thirteenth line:
+        else if (counter == (multiplyNineteen * 19) + 13)
+        {
+            tripStored->visaCardNumber = line;
+        }
+        // For every fourteenth line:
+        else if (counter == (multiplyNineteen * 19) + 14)
+        {
+            tripStored->cardExpiry = line;
+        }
+        // For every fifteenth line:
+        else if (counter == (multiplyNineteen * 19) + 15)
+        {
+            tripStored->cardCVC = line;
+        }
+        // For every sixteenth line:
+        else if (counter == (multiplyNineteen * 19) + 16)
+        {
+            if (line == "true")
+            {
+                tripStored->paymentStatus = true;
+            }
+            else if (line == "false")
+            {
+                tripStored->paymentStatus = false;
+            }
+        }
+        // For every seventeenth line:
+        else if (counter == (multiplyNineteen * 19) + 17)
+        {
+            tripStored->cost = stod(line);
+        }
+        // For every eighteenth line:
+        else if (counter == (multiplyNineteen * 19) + 18)
+        {
+            if (line == "true")
+            {
+                tripStored->available = true;
+            }
+            else if (line == "false")
+            {
+                tripStored->available = false;
+            }
+        }
+        // For every nineteenth line:
+        else if (counter == (multiplyNineteen * 19) + 19)
+        {
+            // Add the instance to the vector:
+            wholeFileVector.push_back(*tripStored);
+
+            // Update the multiplication counter:
+            multiplyNineteen++;
+
+            // Create a new trip instance:
+            Trips* tripStored = new Trips;
+        }
+    }
+    // Close the file:
+    tripData.close();
+
+    // Add the last instance to the vector:
+    wholeFileVector.push_back(*tripStored);
+
+    // Then delete the last instance, as it will be empty:
+    wholeFileVector.pop_back();
+
+    // Reset the counter:
+    counter = 0;
+
+    // Reset multiplication:
+    multiplyNineteen = 0;
+
+    // Now re-write the file:
+    tripData.open("tripData.txt", ios::out);
+
+    for (int i = 0; i < wholeFileVector.size(); i++)
+    {
+        // Only add the items that aren't being cancelled:
+        if (wholeFileVector[i].tripNumber == *tripToCancelPtr)
+        {
+            continue;
+        }
+        else
+        {
+            tripData << wholeFileVector[i].tripNumber << endl;
+            tripData << wholeFileVector[i].customerName << endl;
+            tripData << wholeFileVector[i].customerContactNumber << endl;
+            tripData << wholeFileVector[i].startingPlace << endl;
+            tripData << wholeFileVector[i].destination << endl;
+            tripData << wholeFileVector[i].tripDate[0] << endl;
+            tripData << wholeFileVector[i].tripDate[1] << endl;
+            tripData << wholeFileVector[i].tripDate[2] << endl;
+            tripData << wholeFileVector[i].time << endl;
+            tripData << wholeFileVector[i].noOfPeople << endl;
+            tripData << wholeFileVector[i].extraSupport << endl;
+            tripData << wholeFileVector[i].luggage << endl;
+            tripData << wholeFileVector[i].visaCardNumber << endl;
+            tripData << wholeFileVector[i].cardExpiry << endl;
+            tripData << wholeFileVector[i].cardCVC << endl;
+            if (wholeFileVector[i].paymentStatus == true)
+            {
+                tripData << "true" << endl;
+            }
+            else if (wholeFileVector[i].paymentStatus == false)
+            {
+                tripData << "false" << endl;
+            }
+            tripData << wholeFileVector[i].cost << endl;
+            if (wholeFileVector[i].available == true)
+            {
+                tripData << "true" << endl;
+            }
+            else if (wholeFileVector[i].available == false)
+            {
+                tripData << "false" << endl;
+            }
+            tripData << "-----End of item-----" << endl;
+        }
+    }
+    // Close the file:
+    tripData.close();
+
+    // Clear the vector:
+    wholeFileVector.clear();
+
+    // Delete spare instances:
+    delete tripStored;
+
+    // Fix missed inputs bug:
+    cin.ignore();
+
+    // Ask the user what they want to do now:
+    cout << "\n\n\t\tTrip cancelled!" << endl;
+    cout << "\t\tWould you like to cancel another trip ? y / n : ";
+    getline(cin, cancelAnother);
+
+    // Act on this input:
+    if (cancelAnother == "y")
+    {
+        tripCancellation();
+    }
+    else if (cancelAnother == "n")
+    {
+        // Back to the customer screen:
+        customerScreen();
+    }
+    else
+    {
+        // Deal with unexpected inputs:
+        while (cancelAnother != "y" && cancelAnother != "n")
+        {
+            cout << "\n\n\t\tSorry! Invalid input. Please type y or n: ";
+            getline(cin, cancelAnother);
+        }
+        // Once the input is valid, act on it:
+        if (cancelAnother == "y")
         {
             tripCancellation();
         }
-        else if (tripInPastOption == "n")
+        else if (cancelAnother == "n")
         {
             // Back to the customer screen:
             customerScreen();
         }
     }
-    // If the trip isn't in the past, cancel it:
-    // go here
 }
 
 // Driver LogIn Function:
