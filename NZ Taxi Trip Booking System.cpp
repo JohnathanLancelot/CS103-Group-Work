@@ -323,6 +323,7 @@ void cleanUpData()
     vector<Trips>cleaningVector;
     vector<ClaimedTrips>cleaningVector2;
     vector<CustomerCount>cleaningVector3;
+    vector<CancellationCount>cleaningVector4;
     vector<int>cleaningEndMarkers;
 
     // Start the dates off as the same:
@@ -931,6 +932,139 @@ void cleanUpData()
 
     // Delete leftover newCount instances:
     delete newCount;
+
+    /* We are also counting the number of cancellations each week,
+     * so we will need to remove any cancellations older than a week
+     * as well.
+     */
+    tripCancellations.open("tripCancellations.txt", ios::in);
+
+    while (getline(tripCancellations, tripLines))
+    {
+        // Count the lines being read:
+        counts++;
+
+        // Look for end markers and store them:
+        if (tripLines == "-----End of item-----")
+        {
+            cleaningEndMarkers.push_back(counts);
+        }
+    }
+    // Close the file:
+    tripCancellations.close();
+
+    // Reset the counter:
+    counts = 0;
+
+    // Create a new instance of the CancellationCount struct:
+    CancellationCount *newCancellation = new CancellationCount;
+
+    // Open the tripCancellations file:
+    tripCancellations.open("tripCancellations.txt", ios::in);
+
+    // Fill the instance:
+    while (getline(tripCancellations, tripLines))
+    {
+        // Count the lines being read:
+        counts++;
+
+        for (int i = 0; i < cleaningEndMarkers.size(); i++)
+        {
+            // For every first line:
+            if (counts == (cleaningEndMarkers[i] - 3))
+            {
+                newCancellation->day = stoi(tripLines);
+            }
+            // For every second line:
+            else if (counts == (cleaningEndMarkers[i] - 2))
+            {
+                newCancellation->month = stoi(tripLines);
+            }
+            // For every third line:
+            else if (counts == (cleaningEndMarkers[i] - 1))
+            {
+                newCancellation->year = stoi(tripLines);
+            }
+            // For every fourth line:
+            else if (counts == cleaningEndMarkers[i])
+            {
+                // Add the instance to the vector:
+                cleaningVector4.push_back(*newCancellation);
+
+                // Create a new instance:
+                CancellationCount* newCancellation = new CancellationCount;
+            }
+        }
+    }
+    // Close the file:
+    tripCancellations.close();
+
+    // Reset counter:
+    counts = 0;
+
+    // Clear the end marker vector:
+    cleaningEndMarkers.clear();
+
+    // Add the last instance to the vector:
+    cleaningVector4.push_back(*newCancellation);
+
+    // And then delete it, as it will be empty:
+    cleaningVector4.pop_back();
+
+    // Now that we've stored everything in a struct, we can re-write the tripCancellations file:
+    tripCancellations.open("tripCancellations.txt", ios::out);
+
+    for (int i = 0; i < cleaningVector4.size(); i++)
+    {
+        /* For each instance in the vector, find out if the date is more than a week ago
+         * and only print the contents if the date is more recent.
+         */
+        if (cleaningVector4[i].year < *lastWeekYearPtr)
+        {
+            cleaningVector4[i].tooOld = true;
+        }
+        else
+        {
+            // If the year isn't too far back, check the month:
+            if (cleaningVector4[i].year == *lastWeekYearPtr && cleaningVector4[i].month < *lastWeekMonthPtr)
+            {
+                cleaningVector4[i].tooOld = true;
+            }
+            else
+            {
+                // If the month isn't too far back, check the day:
+                if (cleaningVector4[i].year == *lastWeekYearPtr && cleaningVector4[i].month == *lastWeekMonthPtr && cleaningVector4[i].day < *lastWeekDayPtr)
+                {
+                    cleaningVector4[i].tooOld = true;
+                }
+                else
+                {
+                    cleaningVector4[i].tooOld = false;
+                }
+            }
+        }
+    }
+    // Printing loop:
+    for (int i = 0; i < cleaningVector4.size(); i++)
+    {
+        // Only print if tooOld is false:
+        if (cleaningVector4[i].tooOld == false)
+        {
+            tripCancellations << cleaningVector4[i].day << endl;
+            tripCancellations << cleaningVector4[i].month << endl;
+            tripCancellations << cleaningVector4[i].year << endl;
+            tripCancellations << "-----End of item-----" << endl;
+        }
+    }
+
+    // Close the file:
+    tripCancellations.close();
+
+    // Clear the cleaning vector:
+    cleaningVector4.clear();
+
+    // Delete leftover newCancellation instances:
+    delete newCancellation;
 }
 
 void introFunction()
@@ -2169,6 +2303,20 @@ void tripCancellation()
     }
     // Close the file:
     tripData.close();
+
+    // Record this cancellation in the tripCancellations file:
+    tripCancellations.open("tripCancellations.txt", ios::out | ios::app);
+
+    // Today's date:
+    tripCancellations << dt->tm_mday << endl;
+    tripCancellations << dt->tm_mon + 1 << endl;
+    tripCancellations << dt->tm_year + 1900 << endl;
+
+    // And an end marker:
+    tripCancellations << "-----End of item-----" << endl;
+
+    // Close the file:
+    tripCancellations.close();
 
     // Clear the vector:
     wholeFileVector.clear();
@@ -3610,6 +3758,11 @@ void adminScreen()
     int customerRegistrationDay = 0;
     int customerRegistrationMonth = 0;
     int customerRegistrationYear = 0;
+    int weeklyCancellations = 0;
+    int dailyCancellations = 0;
+    int cancellationDay = 0;
+    int cancellationMonth = 0;
+    int cancellationYear = 0;
     double totalCustomerPayments = 0;
     double cost = 0;
     bool dayValid = false;
@@ -3914,6 +4067,117 @@ void adminScreen()
 
     // Confirm the number of new customers this week:
     *noOfNewCustomersThisWeekPtr = weeklyNewCustomers;
+
+    /* Search through the tripCancellations file and count the 
+     * number of items with today's date,
+     * as well as the total number of items:
+     */
+    tripCancellations.open("tripCancellations.txt", ios::in);
+
+    // Clear the end markers vector so we can use it again:
+    endMarkers.clear();
+
+    // Reset the counter:
+    lineCounter = 0;
+
+    while (getline(tripCancellations, customerLine))
+    {
+        // Count the lines being read:
+        lineCounter++;
+
+        // Look for end markers:
+        if (customerLine == "-----End of item-----")
+        {
+            // Add to the weekly cancellations sum:
+            weeklyCancellations++;
+
+            // Add the location to the endMarkers vector:
+            endMarkers.push_back(lineCounter);
+        }
+    }
+    // Close the file:
+    tripCancellations.close();
+
+    // Reset the counter as well as the date validations:
+    lineCounter = 0;
+    dayValid = false;
+    monthValid = false;
+    yearValid = false;
+
+    // Open the file again and read each line:
+    tripCancellations.open("tripCancellations.txt", ios::in);
+
+    while (getline(tripCancellations, customerLine))
+    {
+        // Count the lines being read:
+        lineCounter++;
+
+        // Go through the vector of end markers to read each item's info:
+        for (int i = 0; i < endMarkers.size(); i++)
+        {
+            // For every first line:
+            if (lineCounter == (endMarkers[i] - 3))
+            {
+                cancellationDay = stoi(customerLine);
+            }
+            // For every second line:
+            else if (lineCounter == (endMarkers[i] - 2))
+            {
+                cancellationMonth = stoi(customerLine);
+            }
+            // For every third line:
+            else if (lineCounter == (endMarkers[i] - 1))
+            {
+                cancellationYear = stoi(customerLine);
+            }
+            // For every fourth line:
+            else if (lineCounter == endMarkers[i])
+            {
+                // Find out if the date is today, starting with the day:
+                if (cancellationDay == dt->tm_mday)
+                {
+                    dayValid = true;
+                }
+                else
+                {
+                    dayValid = false;
+                }
+                // Then check the month:
+                if (cancellationMonth == dt->tm_mon + 1)
+                {
+                    monthValid = true;
+                }
+                else
+                {
+                    monthValid = false;
+                }
+                // Then check the year:
+                if (cancellationYear == dt->tm_year + 1900)
+                {
+                    yearValid = true;
+                }
+                else
+                {
+                    yearValid = false;
+                }
+                // If all 3 are valid, add to the number of daily cancellations:
+                if (dayValid == true && monthValid == true && yearValid == true)
+                {
+                    dailyCancellations++;
+                }
+            }
+        }
+    }
+    // Close the file, reset the counter and clear the vector:
+    tripCancellations.close();
+    lineCounter = 0;
+    endMarkers.clear();
+
+    // Confirm the number of cancellations today:
+    *noOfCancellationsDailyPtr = dailyCancellations;
+
+    // Confirm the number of cancellations this week:
+    *noOfCancellationsWeeklyPtr = weeklyCancellations;
 
     // Print the number of new customers today and this week:
     cout << "\t\tNumber of New Customers Today          : " << *noOfNewCustomersTodayPtr << endl;
