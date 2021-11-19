@@ -77,6 +77,10 @@ int noOfCancellationsDaily = 0;
 int* noOfCancellationsDailyPtr = &noOfCancellationsDaily;
 int noOfCancellationsWeekly = 0;
 int* noOfCancellationsWeeklyPtr = &noOfCancellationsWeekly;
+int tripBookingChoice;
+int* tripBookingChoicePtr = &tripBookingChoice;
+int tripToCancel;
+int* tripToCancelPtr = &tripToCancel;
 
 // Global Variables For Driver Registration / LogIn:
 fstream driverData;
@@ -172,6 +176,14 @@ struct CustomerCount
     bool tooOld = false;
 };
 
+struct CancellationCount
+{
+    int day = 0;
+    int month = 0;
+    int year = 0;
+    bool tooOld = false;
+};
+
 struct Driver
 {
     // General Information:
@@ -248,7 +260,7 @@ struct Trips
 };
 
 // Functions:
-void cleanUpTrips();
+void cleanUpData();
 void introFunction();
 string roleChoiceFunction();
 void customerLogIn();
@@ -256,6 +268,7 @@ void customerRegistration();
 void customerScreen();
 void priceEstimation();
 void tripBooking();
+void tripCancellation();
 void driverLogIn();
 void driverRegistration();
 void driverScreen();
@@ -267,7 +280,7 @@ void adminScreen();
 int main()
 {
     /* Create the adminData.txt file if it isn't already there, and make sure we overwrite the contents
-     * Rather than adding duplicates of the admin information each time:
+     * rather than adding duplicates of the admin information each time:
      * Admin Email: admin@nztaxitrip.com
      * Admin Password: toot-for-taxi
      */
@@ -281,14 +294,16 @@ int main()
     // Close the file:
     adminData.close();
 
-    // Clean up the trips file, deleting any trips older than a week:
-    cleanUpTrips();
+    /* Clean up the trips, driver activity, customer count and cancellation count files,
+     * deleting anything older than a week.
+     */
+    cleanUpData();
 
     // Start the program with the intro:
     introFunction();
 }
 
-void cleanUpTrips()
+void cleanUpData()
 {
     /* First, we'll need to calculate what the date was last week,
      * so we'll obtain today's date...
@@ -308,6 +323,7 @@ void cleanUpTrips()
     vector<Trips>cleaningVector;
     vector<ClaimedTrips>cleaningVector2;
     vector<CustomerCount>cleaningVector3;
+    vector<CancellationCount>cleaningVector4;
     vector<int>cleaningEndMarkers;
 
     // Start the dates off as the same:
@@ -421,6 +437,9 @@ void cleanUpTrips()
     // Reset counter so we can use it again:
     counts = 0;
 
+    // Reset Multiplication:
+    multiplication = 0;
+
     /* Now we have the date for last week!
      * We now need to search through the trips file,
      * and find any trips that are older than one week.
@@ -433,52 +452,100 @@ void cleanUpTrips()
     while (getline(tripData, tripLines))
     {
         // For every first line:
-        if (counts == (multiplication * 11))
+        if (counts == (multiplication * 19))
         {
             cleaningTrips->tripNumber = stoi(tripLines);
         }
         // For every second line:
-        else if (counts == (multiplication * 11) + 1)
+        else if (counts == (multiplication * 19) + 1)
         {
             cleaningTrips->customerName = tripLines;
         }
         // For every third line:
-        else if (counts == (multiplication * 11) + 2)
+        else if (counts == (multiplication * 19) + 2)
         {
             cleaningTrips->customerContactNumber = tripLines;
         }
         // For every fourth line:
-        else if (counts == (multiplication * 11) + 3)
+        else if (counts == (multiplication * 19) + 3)
         {
             cleaningTrips->startingPlace = tripLines;
         }
         // For every fifth line:
-        else if (counts == (multiplication * 11) + 4)
+        else if (counts == (multiplication * 19) + 4)
         {
             cleaningTrips->destination = tripLines;
         }
         // For every sixth line:
-        else if (counts == (multiplication * 11) + 5)
+        else if (counts == (multiplication * 19) + 5)
         {
             cleaningTrips->tripDate[0] = stoi(tripLines);
         }
         // For every seventh line:
-        else if (counts == (multiplication * 11) + 6)
+        else if (counts == (multiplication * 19) + 6)
         {
             cleaningTrips->tripDate[1] = stoi(tripLines);
         }
         // For every eighth line:
-        else if (counts == (multiplication * 11) + 7)
+        else if (counts == (multiplication * 19) + 7)
         {
             cleaningTrips->tripDate[2] = stoi(tripLines);
         }
         // For every ninth line:
-        else if (counts == (multiplication * 11) + 8)
+        else if (counts == (multiplication * 19) + 8)
         {
             cleaningTrips->time = tripLines;
         }
         // For every tenth line:
-        else if (counts == (multiplication * 11) + 9)
+        else if (counts == (multiplication * 19) + 9)
+        {
+            cleaningTrips->noOfPeople = stoi(tripLines);
+        }
+        // For every eleventh line:
+        else if (counts == (multiplication * 19) + 10)
+        {
+            cleaningTrips->extraSupport = tripLines;
+        }
+        // For every twelth line:
+        else if (counts == (multiplication * 19) + 11)
+        {
+            cleaningTrips->luggage = tripLines;
+        }
+        // For every thirteenth line:
+        else if (counts == (multiplication * 19) + 12)
+        {
+            cleaningTrips->visaCardNumber = tripLines;
+        }
+        // For every fourteenth line:
+        else if (counts == (multiplication * 19) + 13)
+        {
+            cleaningTrips->cardExpiry = tripLines;
+        }
+        // For every fifteenth line:
+        else if (counts == (multiplication * 19) + 14)
+        {
+            cleaningTrips->cardCVC = tripLines;
+        }
+        // For every sixteenth line:
+        else if (counts == (multiplication * 19) + 15)
+        {
+            // Payment Status:
+            if (tripLines == "true")
+            {
+                cleaningTrips->paymentStatus = true;
+            }
+            else if (tripLines == "false")
+            {
+                cleaningTrips->paymentStatus = false;
+            }
+        }
+        // For every seventeenth line:
+        else if (counts == (multiplication * 19) + 16)
+        {
+            cleaningTrips->cost = stod(tripLines);
+        }
+        // For every eighteenth line:
+        else if (counts == (multiplication * 19) + 17)
         {
             if (tripLines == "true")
             {
@@ -489,8 +556,8 @@ void cleanUpTrips()
                 cleaningTrips->available = false;
             }
         }
-        // For every eleventh line:
-        else if (counts == (multiplication * 11) + 10)
+        // For every nineteenth line:
+        else if (counts == (multiplication * 19) + 18)
         {
             // Add the instance to the vector:
             cleaningVector.push_back(*cleaningTrips);
@@ -556,6 +623,21 @@ void cleanUpTrips()
             tripData << cleaningVector[i].tripDate[1] << endl;
             tripData << cleaningVector[i].tripDate[2] << endl;
             tripData << cleaningVector[i].time << endl;
+            tripData << cleaningVector[i].noOfPeople << endl;
+            tripData << cleaningVector[i].extraSupport << endl;
+            tripData << cleaningVector[i].luggage << endl;
+            tripData << cleaningVector[i].visaCardNumber << endl;
+            tripData << cleaningVector[i].cardExpiry << endl;
+            tripData << cleaningVector[i].cardCVC << endl;
+            if (cleaningVector[i].paymentStatus == true)
+            {
+                tripData << "true" << endl;
+            }
+            else if (cleaningVector[i].paymentStatus == false)
+            {
+                tripData << "false" << endl;
+            }
+            tripData << cleaningVector[i].cost << endl;
             if (cleaningVector[i].available == true)
             {
                 tripData << "true" << endl;
@@ -850,6 +932,139 @@ void cleanUpTrips()
 
     // Delete leftover newCount instances:
     delete newCount;
+
+    /* We are also counting the number of cancellations each week,
+     * so we will need to remove any cancellations older than a week
+     * as well.
+     */
+    tripCancellations.open("tripCancellations.txt", ios::in);
+
+    while (getline(tripCancellations, tripLines))
+    {
+        // Count the lines being read:
+        counts++;
+
+        // Look for end markers and store them:
+        if (tripLines == "-----End of item-----")
+        {
+            cleaningEndMarkers.push_back(counts);
+        }
+    }
+    // Close the file:
+    tripCancellations.close();
+
+    // Reset the counter:
+    counts = 0;
+
+    // Create a new instance of the CancellationCount struct:
+    CancellationCount* newCancellation = new CancellationCount;
+
+    // Open the tripCancellations file:
+    tripCancellations.open("tripCancellations.txt", ios::in);
+
+    // Fill the instance:
+    while (getline(tripCancellations, tripLines))
+    {
+        // Count the lines being read:
+        counts++;
+
+        for (int i = 0; i < cleaningEndMarkers.size(); i++)
+        {
+            // For every first line:
+            if (counts == (cleaningEndMarkers[i] - 3))
+            {
+                newCancellation->day = stoi(tripLines);
+            }
+            // For every second line:
+            else if (counts == (cleaningEndMarkers[i] - 2))
+            {
+                newCancellation->month = stoi(tripLines);
+            }
+            // For every third line:
+            else if (counts == (cleaningEndMarkers[i] - 1))
+            {
+                newCancellation->year = stoi(tripLines);
+            }
+            // For every fourth line:
+            else if (counts == cleaningEndMarkers[i])
+            {
+                // Add the instance to the vector:
+                cleaningVector4.push_back(*newCancellation);
+
+                // Create a new instance:
+                CancellationCount* newCancellation = new CancellationCount;
+            }
+        }
+    }
+    // Close the file:
+    tripCancellations.close();
+
+    // Reset counter:
+    counts = 0;
+
+    // Clear the end marker vector:
+    cleaningEndMarkers.clear();
+
+    // Add the last instance to the vector:
+    cleaningVector4.push_back(*newCancellation);
+
+    // And then delete it, as it will be empty:
+    cleaningVector4.pop_back();
+
+    // Now that we've stored everything in a struct, we can re-write the tripCancellations file:
+    tripCancellations.open("tripCancellations.txt", ios::out);
+
+    for (int i = 0; i < cleaningVector4.size(); i++)
+    {
+        /* For each instance in the vector, find out if the date is more than a week ago
+         * and only print the contents if the date is more recent.
+         */
+        if (cleaningVector4[i].year < *lastWeekYearPtr)
+        {
+            cleaningVector4[i].tooOld = true;
+        }
+        else
+        {
+            // If the year isn't too far back, check the month:
+            if (cleaningVector4[i].year == *lastWeekYearPtr && cleaningVector4[i].month < *lastWeekMonthPtr)
+            {
+                cleaningVector4[i].tooOld = true;
+            }
+            else
+            {
+                // If the month isn't too far back, check the day:
+                if (cleaningVector4[i].year == *lastWeekYearPtr && cleaningVector4[i].month == *lastWeekMonthPtr && cleaningVector4[i].day < *lastWeekDayPtr)
+                {
+                    cleaningVector4[i].tooOld = true;
+                }
+                else
+                {
+                    cleaningVector4[i].tooOld = false;
+                }
+            }
+        }
+    }
+    // Printing loop:
+    for (int i = 0; i < cleaningVector4.size(); i++)
+    {
+        // Only print if tooOld is false:
+        if (cleaningVector4[i].tooOld == false)
+        {
+            tripCancellations << cleaningVector4[i].day << endl;
+            tripCancellations << cleaningVector4[i].month << endl;
+            tripCancellations << cleaningVector4[i].year << endl;
+            tripCancellations << "-----End of item-----" << endl;
+        }
+    }
+
+    // Close the file:
+    tripCancellations.close();
+
+    // Clear the cleaning vector:
+    cleaningVector4.clear();
+
+    // Delete leftover newCancellation instances:
+    delete newCancellation;
 }
 
 void introFunction()
@@ -1287,11 +1502,12 @@ void customerScreen()
     cout << "\n\t\t\t|| Options ||" << endl << endl;
 
     cout << "\t\t1. Get a price estimation" << endl;
-    cout << "\t\t2. Book or cancel a trip" << endl;
-    cout << "\t\t3. Log out" << endl << endl;
+    cout << "\t\t2. Book a trip" << endl;
+    cout << "\t\t3. Cancel a trip" << endl;
+    cout << "\t\t4. Log out" << endl << endl;
 
     cout << "\n\t\tWhat would you like to do?" << endl;
-    cout << "\t\tPlease type 1, 2 or 3: ";
+    cout << "\t\tPlease type 1, 2, 3 or 4: ";
     cin >> *customerScreenMenuOptionPtr;
 
     cout << endl;
@@ -1308,15 +1524,19 @@ void customerScreen()
     }
     else if (*customerScreenMenuOptionPtr == 3)
     {
+        tripCancellation();
+    }
+    else if (*customerScreenMenuOptionPtr == 4)
+    {
         // Go back to the intro screen to log out:
         introFunction();
     }
     else
     {
         // Manage invalid inputs:
-        while (*customerScreenMenuOptionPtr != 1 && *customerScreenMenuOptionPtr != 2 && *customerScreenMenuOptionPtr != 3)
+        while (*customerScreenMenuOptionPtr != 1 && *customerScreenMenuOptionPtr != 2 && *customerScreenMenuOptionPtr != 3 && *customerScreenMenuOptionPtr != 4)
         {
-            cout << "\t\tSorry. Invalid input. Please type 1, 2 or 3: ";
+            cout << "\t\tSorry. Invalid input. Please type 1, 2, 3 or 4: ";
             cin >> *customerScreenMenuOptionPtr;
             cout << endl;
         }
@@ -1331,6 +1551,10 @@ void customerScreen()
             tripBooking();
         }
         else if (*customerScreenMenuOptionPtr == 3)
+        {
+            tripCancellation();
+        }
+        else if (*customerScreenMenuOptionPtr == 4)
         {
             // Go back to the intro screen to log out:
             introFunction();
@@ -1393,11 +1617,12 @@ void tripBooking()
 
     // Create a temporary instance:
     Trips newTrip;
+    newTrip.paymentStatus;
     bool cancel;
     cout << "would you like to book a trip, or cancel an existing one";
     cin >> cancel;
     if (cancel = "Cancel") {
-        cancellations();
+        tripCancellation();
     }
     else {
         // Fix the missed inputs issue:
@@ -1436,7 +1661,7 @@ void tripBooking()
          * If there isn't a tripNumberGenerator file yet,
         * make one, and make the first trip number 0
         * (it will soon be changed to 1).
-        */  
+        */
         tripNumberGenerator.open("tripNumberGenerator.txt", ios::out | ios::_Noreplace);
 
         tripNumberGenerator << 0;
@@ -1486,6 +1711,705 @@ void tripBooking()
         tripData << newTrip.cardCVC << endl;
         tripData << "-----End of item-----" << endl;
         // Other stuff...
+        newTrip.paymentStatus;
+        double paid;
+        cout << "\n\t\tPlease pay for your trip, your total cost is" << *baseFarePtr + (*estimateDistancePtr * *costPerKmPtr);
+        cin >> paid;
+        if (paid = *baseFarePtr + (*estimateDistancePtr * *costPerKmPtr)) {
+            newTrip.paymentStatus = true;
+        }
+        else {
+            newTrip.paymentStatus = false;
+        }
+
+    }
+    if (newTrip.paymentStatus = true); {
+        billPrinting();
+    }
+    if (newTrip.paymentStatus = false){
+        customerScreen;
+    }
+}
+
+// Bill Printing Function
+void billPrinting()
+{
+    Trips newTrip;
+
+    cout << (newTrip.customerName);
+    cout << (newTrip.time);
+    cout << (newTrip.startingPlace);
+    cout << (newTrip.destination);
+    cout << *baseFarePtr + (*estimateDistancePtr * *costPerKmPtr);
+}
+void tripCancellation()
+{
+    // Header Section:
+    cout << "\n\n\t\t___________________________________________________" << endl << endl;
+    cout << "\t\t---------------------------------------------------" << endl;
+    cout << "\t\t___________________________________________________" << endl << endl;
+
+    cout << "\n\t\t\tTrip Cancellation" << endl << endl << endl;
+
+    // Local Variables:
+    int counter = 0;
+    int emailLineForCancellation = 0;
+    int* emailLineForCancellationPtr = &emailLineForCancellation;
+    int tripFoundIndex = 0;
+    int multiplyNineteen = 0;
+    bool tripFound = false;
+    bool dayValid = true;
+    bool monthValid = true;
+    bool yearValid = true;
+    string line;
+    string fullName;
+    string tripNotFoundOption;
+    string tripInPastOption;
+    string cancelAnother;
+    vector<int>fullNameLines;
+    vector<Trips>preCancellationVector;
+    vector<Trips>wholeFileVector;
+
+    // Allow us to use time:
+    time_t now = time(0);
+    struct  tm* dt = localtime(&now);
+
+    // Start by showing the user their trips:
+    cout << "\t\t\t|| Your Booked Trips ||" << endl << endl;
+
+    /* First we need to find out the user's full name.
+     * Open the customerData file and look for the currently logged in user's email address.
+     */
+    customerData.open("customerData.txt", ios::in);
+
+    while (getline(customerData, line))
+    {
+        // Count the lines being read:
+        counter++;
+
+        // Look for the email address:
+        if (line == *customerEmailLogInPtr)
+        {
+            // Record its position:
+            *emailLineForCancellationPtr = counter;
+        }
+    }
+    // Close the file:
+    customerData.close();
+
+    // Reset the counter:
+    counter = 0;
+
+    // Re-open the file:
+    customerData.open("customerData.txt", ios::in);
+
+    while (getline(customerData, line))
+    {
+        // Count the lines being read:
+        counter++;
+
+        // Look for the customer's name, 6 lines up from the email:
+        if (counter == (*emailLineForCancellationPtr - 6))
+        {
+            fullName = line;
+        }
+    }
+    // Close the file:
+    customerData.close();
+
+    // Reset the counter:
+    counter = 0;
+
+    // Now open the tripData file and look for the name:
+    tripData.open("tripData.txt", ios::in);
+
+    while (getline(tripData, line))
+    {
+        // Count lines:
+        counter++;
+
+        // Look for the name and record its position/s in a vector:
+        if (line == fullName)
+        {
+            fullNameLines.push_back(counter);
+        }
+    }
+    // Close the file:
+    tripData.close();
+
+    // Reset line counter:
+    counter = 0;
+
+    // Create a temporary instance of the Trips structure:
+    Trips* newTrip = new Trips;
+
+    // Re-open the tripData file and read its lines:
+    tripData.open("tripData.txt", ios::in);
+
+    while (getline(tripData, line))
+    {
+        // Count lines:
+        counter++;
+
+        // Go through the vector to obtain each section:
+        for (int i = 0; i < fullNameLines.size(); i++)
+        {
+            // For each first line:
+            if (counter == fullNameLines[i] - 1)
+            {
+                newTrip->tripNumber = stoi(line);
+            }
+            // For each second line:
+            else if (counter == fullNameLines[i])
+            {
+                newTrip->customerName = line;
+            }
+            // For each third line:
+            else if (counter == fullNameLines[i] + 1)
+            {
+                newTrip->customerContactNumber = line;
+            }
+            // For each fourth line:
+            else if (counter == fullNameLines[i] + 2)
+            {
+                newTrip->startingPlace = line;
+            }
+            // For each fifth line:
+            else if (counter == fullNameLines[i] + 3)
+            {
+                newTrip->destination = line;
+            }
+            // For each sixth line:
+            else if (counter == fullNameLines[i] + 4)
+            {
+                newTrip->tripDate[0] = stoi(line);
+            }
+            // For each seventh line:
+            else if (counter == fullNameLines[i] + 5)
+            {
+                newTrip->tripDate[1] = stoi(line);
+            }
+            // For each eighth line:
+            else if (counter == fullNameLines[i] + 6)
+            {
+                newTrip->tripDate[2] = stoi(line);
+            }
+            // For each ninth line:
+            else if (counter == fullNameLines[i] + 7)
+            {
+                newTrip->time = line;
+            }
+            // For each tenth line:
+            else if (counter == fullNameLines[i] + 8)
+            {
+                newTrip->noOfPeople = stoi(line);
+            }
+            // For each eleventh line:
+            else if (counter == fullNameLines[i] + 9)
+            {
+                newTrip->extraSupport = line;
+            }
+            // For each twelth line:
+            else if (counter == fullNameLines[i] + 10)
+            {
+                newTrip->luggage = line;
+            }
+            // For every thirteenth line:
+            else if (counter == fullNameLines[i] + 11)
+            {
+                newTrip->visaCardNumber = line;
+            }
+            // For every fourteenth line:
+            else if (counter == fullNameLines[i] + 12)
+            {
+                newTrip->cardExpiry = line;
+            }
+            // For every fifteenth line:
+            else if (counter == fullNameLines[i] + 13)
+            {
+                newTrip->cardCVC = line;
+            }
+            // For every sixteenth line:
+            else if (counter == fullNameLines[i] + 14)
+            {
+                if (line == "true")
+                {
+                    newTrip->paymentStatus = true;
+                }
+                else if (line == "false")
+                {
+                    newTrip->paymentStatus = false;
+                }
+            }
+            // For every seventeenth line:
+            else if (counter == fullNameLines[i] + 15)
+            {
+                newTrip->cost = stod(line);
+            }
+            // For every eighteenth line:
+            else if (counter == fullNameLines[i] + 16)
+            {
+                if (line == "true")
+                {
+                    newTrip->available = true;
+                }
+                else if (line == "false")
+                {
+                    newTrip->available = false;
+                }
+            }
+            // For every nineteenth line:
+            else if (counter == fullNameLines[i] + 17)
+            {
+                // Add the instance to a vector:
+                preCancellationVector.push_back(*newTrip);
+
+                // Create a new instance:
+                Trips* newTrip = new Trips;
+            }
+        }
+    }
+    // Close the file:
+    tripData.close();
+
+    // Add the last instance to the vector:
+    preCancellationVector.push_back(*newTrip);
+
+    // Then delete the last instance, as it will be empty:
+    preCancellationVector.pop_back();
+
+    // Reset the counter:
+    counter = 0;
+
+    // Now print some of the details of the user's trips:
+    for (int i = 0; i < preCancellationVector.size(); i++)
+    {
+        cout << "\t\tTrip Number     : " << preCancellationVector[i].tripNumber << endl;
+        cout << "\t\tStarting Place  : " << preCancellationVector[i].startingPlace << endl;
+        cout << "\t\tDestination     : " << preCancellationVector[i].destination << endl;
+        cout << "\t\tTrip Date       : " << preCancellationVector[i].tripDate[0] << "/" << preCancellationVector[i].tripDate[1] << "/" << preCancellationVector[i].tripDate[2] << endl;
+        cout << "\t\tTrip Time       : " << preCancellationVector[i].time << endl;
+        cout << "\t\tPayment Status  : ";
+        if (preCancellationVector[i].paymentStatus == true)
+        {
+            cout << "Paid" << endl;
+        }
+        else if (preCancellationVector[i].paymentStatus == false)
+        {
+            cout << "Not Yet Paid" << endl;
+        }
+        cout << "\t\tCost            : " << preCancellationVector[i].cost << endl;
+
+        // Leave a blank line before the next trip:
+        cout << endl;
+    }
+
+    // Ask the user which trip they want to cancel:
+    cout << "\t\tWhich trip would you like to cancel? Trip no. ";
+    cin >> *tripToCancelPtr;
+
+    // Check if this trip is one of the user's booked trips:
+    for (int i = 0; i < preCancellationVector.size(); i++)
+    {
+        if (preCancellationVector[i].tripNumber == *tripToCancelPtr)
+        {
+            tripFound = true;
+
+            // Record the index position:
+            tripFoundIndex = i;
+        }
+    }
+
+    // If the trip isn't found, tell the user this:
+    if (tripFound == false)
+    {
+        cout << "\n\t\tSorry! That trip wasn't found. Do you want to try again? y / n : ";
+        getline(cin, tripNotFoundOption);
+
+        // Act on input:
+        if (tripNotFoundOption == "y")
+        {
+            // Clean up the data first:
+            fullNameLines.clear();
+            preCancellationVector.clear();
+            delete newTrip;
+
+            tripCancellation();
+        }
+        else if (tripNotFoundOption == "n")
+        {
+            // Clean up the data first:
+            fullNameLines.clear();
+            preCancellationVector.clear();
+            delete newTrip;
+
+            // Back to the customer screen:
+            customerScreen();
+        }
+        // Deal with invalid inputs:
+        while (tripNotFoundOption != "y" && tripNotFoundOption != "n")
+        {
+            cout << "\n\t\tSorry! Invalid input. Please type y or n: ";
+            getline(cin, tripNotFoundOption);
+        }
+        // Act on input, once valid:
+        if (tripNotFoundOption == "y")
+        {
+            // Clean up the data first:
+            fullNameLines.clear();
+            preCancellationVector.clear();
+            delete newTrip;
+
+            tripCancellation();
+        }
+        else if (tripNotFoundOption == "n")
+        {
+            // Clean up the data first:
+            fullNameLines.clear();
+            preCancellationVector.clear();
+            delete newTrip;
+
+            // Back to the customer screen:
+            customerScreen();
+        }
+    }
+    /* If tripFound isn't false, we still need to check if it is in the past,
+     * since we don't want users to be able to cancel past trips.
+     * First check the year.
+     */
+    if (preCancellationVector[tripFoundIndex].tripDate[2] < (dt->tm_year + 1900))
+    {
+        yearValid = false;
+    }
+    // Check the month:
+    else if (preCancellationVector[tripFoundIndex].tripDate[1] < (dt->tm_mon + 1))
+    {
+        monthValid = false;
+    }
+    // Check the day:
+    else if (preCancellationVector[tripFoundIndex].tripDate[0] < (dt->tm_mday))
+    {
+        dayValid = false;
+    }
+
+    // Only if all 3 are valid, past is false:
+    if (yearValid == true && monthValid == true && dayValid == true)
+    {
+        preCancellationVector[tripFoundIndex].past = false;
+    }
+    else
+    {
+        preCancellationVector[tripFoundIndex].past = true;
+    }
+
+    // If the trip is in the past, tell the user this:
+    if (preCancellationVector[tripFoundIndex].past == true)
+    {
+        cout << "\n\t\tSorry! You cannot cancel past trips. Do you want to cancel a different trip? y / n : ";
+        getline(cin, tripInPastOption);
+
+        // Act on input:
+        if (tripInPastOption == "y")
+        {
+            // Clean up the data first:
+            fullNameLines.clear();
+            preCancellationVector.clear();
+
+            tripCancellation();
+        }
+        else if (tripInPastOption == "n")
+        {
+            // Clean up the data first:
+            fullNameLines.clear();
+            preCancellationVector.clear();
+
+            // Back to the customer screen:
+            customerScreen();
+        }
+        else
+        {
+            // Deal with invalid inputs:
+            while (tripInPastOption != "y" && tripInPastOption != "n")
+            {
+                cout << "\n\t\tSorry! Invalid input. Please type y or n: ";
+                getline(cin, tripInPastOption);
+            }
+            // Once valid, act on it:
+            if (tripInPastOption == "y")
+            {
+                // Clean up the data first:
+                fullNameLines.clear();
+                preCancellationVector.clear();
+
+                tripCancellation();
+            }
+            else if (tripInPastOption == "n")
+            {
+                // Clean up the data first:
+                fullNameLines.clear();
+                preCancellationVector.clear();
+
+                // Back to the customer screen:
+                customerScreen();
+            }
+        }
+    }
+
+    // Reset line counter:
+    counter = 0;
+
+    // Create a temporary instance of the Trips structure:
+    Trips* tripStored = new Trips;
+
+    // If the trip isn't in the past, cancel it:
+    tripData.open("tripData.txt", ios::in);
+
+    /* First, we need to read every single line in the tripData file,
+     * and assign it to a vector.
+     */
+    while (getline(tripData, line))
+    {
+        // Count the lines being read:
+        counter++;
+
+        // For every first line:
+        if (counter == (multiplyNineteen * 19) + 1)
+        {
+            tripStored->tripNumber = stoi(line);
+        }
+        // For every second line:
+        else if (counter == (multiplyNineteen * 19) + 2)
+        {
+            tripStored->customerName = line;
+        }
+        // For every third line:
+        else if (counter == (multiplyNineteen * 19) + 3)
+        {
+            tripStored->customerContactNumber = line;
+        }
+        // For every fourth line:
+        else if (counter == (multiplyNineteen * 19) + 4)
+        {
+            tripStored->startingPlace = line;
+        }
+        // For every fifth line:
+        else if (counter == (multiplyNineteen * 19) + 5)
+        {
+            tripStored->destination = line;
+        }
+        // For every sixth line:
+        else if (counter == (multiplyNineteen * 19) + 6)
+        {
+            tripStored->tripDate[0] = stoi(line);
+        }
+        // For every seventh line:
+        else if (counter == (multiplyNineteen * 19) + 7)
+        {
+            tripStored->tripDate[1] = stoi(line);
+        }
+        // For every eighth line:
+        else if (counter == (multiplyNineteen * 19) + 8)
+        {
+            tripStored->tripDate[2] = stoi(line);
+        }
+        // For every ninth line:
+        else if (counter == (multiplyNineteen * 19) + 9)
+        {
+            tripStored->time = line;
+        }
+        // For every tenth line:
+        else if (counter == (multiplyNineteen * 19) + 10)
+        {
+            tripStored->noOfPeople = stoi(line);
+        }
+        // For every eleventh line:
+        else if (counter == (multiplyNineteen * 19) + 11)
+        {
+            tripStored->extraSupport = line;
+        }
+        // For every twelth line:
+        else if (counter == (multiplyNineteen * 19) + 12)
+        {
+            tripStored->luggage = line;
+        }
+        // For every thirteenth line:
+        else if (counter == (multiplyNineteen * 19) + 13)
+        {
+            tripStored->visaCardNumber = line;
+        }
+        // For every fourteenth line:
+        else if (counter == (multiplyNineteen * 19) + 14)
+        {
+            tripStored->cardExpiry = line;
+        }
+        // For every fifteenth line:
+        else if (counter == (multiplyNineteen * 19) + 15)
+        {
+            tripStored->cardCVC = line;
+        }
+        // For every sixteenth line:
+        else if (counter == (multiplyNineteen * 19) + 16)
+        {
+            if (line == "true")
+            {
+                tripStored->paymentStatus = true;
+            }
+            else if (line == "false")
+            {
+                tripStored->paymentStatus = false;
+            }
+        }
+        // For every seventeenth line:
+        else if (counter == (multiplyNineteen * 19) + 17)
+        {
+            tripStored->cost = stod(line);
+        }
+        // For every eighteenth line:
+        else if (counter == (multiplyNineteen * 19) + 18)
+        {
+            if (line == "true")
+            {
+                tripStored->available = true;
+            }
+            else if (line == "false")
+            {
+                tripStored->available = false;
+            }
+        }
+        // For every nineteenth line:
+        else if (counter == (multiplyNineteen * 19) + 19)
+        {
+            // Add the instance to the vector:
+            wholeFileVector.push_back(*tripStored);
+
+            // Update the multiplication counter:
+            multiplyNineteen++;
+
+            // Create a new trip instance:
+            Trips* tripStored = new Trips;
+        }
+    }
+    // Close the file:
+    tripData.close();
+
+    // Add the last instance to the vector:
+    wholeFileVector.push_back(*tripStored);
+
+    // Then delete the last instance, as it will be empty:
+    wholeFileVector.pop_back();
+
+    // Reset the counter:
+    counter = 0;
+
+    // Reset multiplication:
+    multiplyNineteen = 0;
+
+    // Now re-write the file:
+    tripData.open("tripData.txt", ios::out);
+
+    for (int i = 0; i < wholeFileVector.size(); i++)
+    {
+        // Only add the items that aren't being cancelled:
+        if (wholeFileVector[i].tripNumber == *tripToCancelPtr)
+        {
+            continue;
+        }
+        else
+        {
+            tripData << wholeFileVector[i].tripNumber << endl;
+            tripData << wholeFileVector[i].customerName << endl;
+            tripData << wholeFileVector[i].customerContactNumber << endl;
+            tripData << wholeFileVector[i].startingPlace << endl;
+            tripData << wholeFileVector[i].destination << endl;
+            tripData << wholeFileVector[i].tripDate[0] << endl;
+            tripData << wholeFileVector[i].tripDate[1] << endl;
+            tripData << wholeFileVector[i].tripDate[2] << endl;
+            tripData << wholeFileVector[i].time << endl;
+            tripData << wholeFileVector[i].noOfPeople << endl;
+            tripData << wholeFileVector[i].extraSupport << endl;
+            tripData << wholeFileVector[i].luggage << endl;
+            tripData << wholeFileVector[i].visaCardNumber << endl;
+            tripData << wholeFileVector[i].cardExpiry << endl;
+            tripData << wholeFileVector[i].cardCVC << endl;
+            if (wholeFileVector[i].paymentStatus == true)
+            {
+                tripData << "true" << endl;
+            }
+            else if (wholeFileVector[i].paymentStatus == false)
+            {
+                tripData << "false" << endl;
+            }
+            tripData << wholeFileVector[i].cost << endl;
+            if (wholeFileVector[i].available == true)
+            {
+                tripData << "true" << endl;
+            }
+            else if (wholeFileVector[i].available == false)
+            {
+                tripData << "false" << endl;
+            }
+            tripData << "-----End of item-----" << endl;
+        }
+    }
+    // Close the file:
+    tripData.close();
+
+    // Record this cancellation in the tripCancellations file:
+    tripCancellations.open("tripCancellations.txt", ios::out | ios::app);
+
+    // Today's date:
+    tripCancellations << dt->tm_mday << endl;
+    tripCancellations << dt->tm_mon + 1 << endl;
+    tripCancellations << dt->tm_year + 1900 << endl;
+
+    // And an end marker:
+    tripCancellations << "-----End of item-----" << endl;
+
+    // Close the file:
+    tripCancellations.close();
+
+    // Clear the vector:
+    wholeFileVector.clear();
+
+    // Delete spare instances:
+    delete tripStored;
+
+    // Fix missed inputs bug:
+    cin.ignore();
+
+    // Ask the user what they want to do now:
+    cout << "\n\n\t\tTrip cancelled!" << endl;
+    cout << "\t\tWould you like to cancel another trip ? y / n : ";
+    getline(cin, cancelAnother);
+
+    // Act on this input:
+    if (cancelAnother == "y")
+    {
+        tripCancellation();
+    }
+    else if (cancelAnother == "n")
+    {
+        // Back to the customer screen:
+        customerScreen();
+    }
+    else
+    {
+        // Deal with unexpected inputs:
+        while (cancelAnother != "y" && cancelAnother != "n")
+        {
+            cout << "\n\n\t\tSorry! Invalid input. Please type y or n: ";
+            getline(cin, cancelAnother);
+        }
+        // Once the input is valid, act on it:
+        if (cancelAnother == "y")
+        {
+            tripCancellation();
+        }
+        else if (cancelAnother == "n")
+        {
+            // Back to the customer screen:
+            customerScreen();
+        }
     }
 }
 
@@ -2045,8 +2969,8 @@ void driverScreen()
                     i->validDate3 = false;
                 }
             }
-            // Now check the cost of each trip (5 lines down from the email address):
-            else if (reportLinesCounter == i->emailLine + 5)
+            // Now check the cost of each trip (4 lines down from the email address):
+            else if (reportLinesCounter == i->emailLine + 4)
             {
                 i->cost = stod(activityLine);
             }
@@ -2157,8 +3081,8 @@ void claimTrip()
         // Then the trip exists, and we now have to read it to see if it's available:
         tripData.open("tripData.txt", ios::in);
 
-        /* (*tripToClaimPtr * 11) gets us to the end of the section / trip we are looking
-         * for, so (*tripToClaimPtr * 11) - 1 will give us the position of the availability,
+        /* (*tripToClaimPtr * 19) gets us to the end of the section / trip we are looking
+         * for, so (*tripToClaimPtr * 19) - 1 will give us the position of the availability,
          * which is one line up from the end marker.
          *
          * We're also looking for the date and the cost----to be used in adding this trip to the
@@ -2168,24 +3092,30 @@ void claimTrip()
         {
             counting++;
 
-            if (counting == ((*tripToClaimPtr * 11) - 1))
+            if (counting == ((*tripToClaimPtr * 19) - 1))
             {
                 availability = tripLine;
             }
-            // Store the date and cost in the addClaim vector:
-            else if (counting == ((*tripToClaimPtr * 11) - 5))
+            // Store the date in the addClaim vector, starting with the day:
+            else if (counting == ((*tripToClaimPtr * 19) - 13))
             {
                 addClaim.push_back(tripLine);
             }
-            else if (counting == ((*tripToClaimPtr * 11) - 4))
+            else if (counting == ((*tripToClaimPtr * 19) - 12))
             {
                 addClaim.push_back(tripLine);
             }
-            else if (counting == ((*tripToClaimPtr * 11) - 3))
+            else if (counting == ((*tripToClaimPtr * 19) - 11))
             {
                 addClaim.push_back(tripLine);
             }
-            else if (counting == ((*tripToClaimPtr * 11) - 2))
+            // Store the time:
+            else if (counting == ((*tripToClaimPtr * 19) - 10))
+            {
+                addClaim.push_back(tripLine);
+            }
+            // Store the cost:
+            else if (counting == ((*tripToClaimPtr * 19) - 2))
             {
                 addClaim.push_back(tripLine);
             }
@@ -2245,7 +3175,7 @@ void claimTrip()
                  * line containing the availability of the trip we just claimed.
                  * This has to be changed to false to show it has been taken.
                  */
-                if (counting == ((*tripToClaimPtr * 11) - 1))
+                if (counting == ((*tripToClaimPtr * 19) - 1))
                 {
                     tripData << "false" << endl;
                     trips[i] = "false";
@@ -2436,6 +3366,37 @@ void bookedTripsDisplay()
             headTrip->time = driverScreenTripLine;
             break;
         case 10:
+            headTrip->noOfPeople = stoi(driverScreenTripLine);
+            break;
+        case 11:
+            headTrip->extraSupport = driverScreenTripLine;
+            break;
+        case 12:
+            headTrip->luggage = driverScreenTripLine;
+            break;
+        case 13:
+            headTrip->visaCardNumber = driverScreenTripLine;
+            break;
+        case 14:
+            headTrip->cardExpiry = driverScreenTripLine;
+            break;
+        case 15:
+            headTrip->cardCVC = driverScreenTripLine;
+            break;
+        case 16:
+            if (driverScreenTripLine == "true")
+            {
+                headTrip->paymentStatus = true;
+            }
+            else if (driverScreenTripLine == "false")
+            {
+                headTrip->paymentStatus = false;
+            }
+            break;
+        case 17:
+            headTrip->cost = stod(driverScreenTripLine);
+            break;
+        case 18:
             if (driverScreenTripLine == "true")
             {
                 headTrip->available = true;
@@ -2444,6 +3405,7 @@ void bookedTripsDisplay()
             {
                 headTrip->available = false;
             }
+            break;
         }
 
         // Count the number of end markers:
@@ -2487,11 +3449,11 @@ void bookedTripsDisplay()
     // Create the previous node as the headNode:
     Trips* previousTrip = headTrip;
 
-    /* Each item in the data file takes up 11 lines(including the end marker)
-     * so, if we add 11 to the line counter each time we reach a new node,
-     * we'll be able to obtain the onformation we need:
+    /* Each item in the data file takes up 19 lines(including the end marker)
+     * so, if we add 19 to the line counter each time we reach a new node,
+     * we'll be able to obtain the information we need:
      */
-    int addEleven = 0;
+    int addNineteen = 0;
 
     // Start from the second node:
     for (int i = 1; i < driverScreenEndMarkerCounter; i++)
@@ -2501,8 +3463,8 @@ void bookedTripsDisplay()
         // Set the line counter to zero:
         driverScreenTripLineCounter = 0;
 
-        // Add eleven:
-        addEleven += 11;
+        // Add nineteen:
+        addNineteen += 19;
 
         // Re-open the tripData.txt file and look for the next set of trip details:
         tripData.open("tripData.txt", ios::in);
@@ -2512,43 +3474,82 @@ void bookedTripsDisplay()
             // Count the number of lines being read:
             driverScreenTripLineCounter++;
 
-            if (driverScreenTripLineCounter == 1 + addEleven)
+            if (driverScreenTripLineCounter == 1 + addNineteen)
             {
                 newTrip->tripNumber = stoi(driverScreenTripLine);
             }
-            else if (driverScreenTripLineCounter == 2 + addEleven)
+            else if (driverScreenTripLineCounter == 2 + addNineteen)
             {
                 newTrip->customerName = driverScreenTripLine;
             }
-            else if (driverScreenTripLineCounter == 3 + addEleven)
+            else if (driverScreenTripLineCounter == 3 + addNineteen)
             {
                 newTrip->customerContactNumber = driverScreenTripLine;
             }
-            else if (driverScreenTripLineCounter == 4 + addEleven)
+            else if (driverScreenTripLineCounter == 4 + addNineteen)
             {
                 newTrip->startingPlace = driverScreenTripLine;
             }
-            else if (driverScreenTripLineCounter == 5 + addEleven)
+            else if (driverScreenTripLineCounter == 5 + addNineteen)
             {
                 newTrip->destination = driverScreenTripLine;
             }
-            else if (driverScreenTripLineCounter == 6 + addEleven)
+            else if (driverScreenTripLineCounter == 6 + addNineteen)
             {
                 newTrip->tripDate[0] = stoi(driverScreenTripLine);
             }
-            else if (driverScreenTripLineCounter == 7 + addEleven)
+            else if (driverScreenTripLineCounter == 7 + addNineteen)
             {
                 newTrip->tripDate[1] = stoi(driverScreenTripLine);
             }
-            else if (driverScreenTripLineCounter == 8 + addEleven)
+            else if (driverScreenTripLineCounter == 8 + addNineteen)
             {
                 newTrip->tripDate[2] = stoi(driverScreenTripLine);
             }
-            else if (driverScreenTripLineCounter == 9 + addEleven)
+            else if (driverScreenTripLineCounter == 9 + addNineteen)
             {
                 newTrip->time = driverScreenTripLine;
             }
-            else if (driverScreenTripLineCounter == 10 + addEleven)
+            else if (driverScreenTripLineCounter == 10 + addNineteen)
+            {
+                newTrip->noOfPeople = stoi(driverScreenTripLine);
+            }
+            else if (driverScreenTripLineCounter == 11 + addNineteen)
+            {
+                newTrip->extraSupport = driverScreenTripLine;
+            }
+            else if (driverScreenTripLineCounter == 12 + addNineteen)
+            {
+                newTrip->luggage = driverScreenTripLine;
+            }
+            else if (driverScreenTripLineCounter == 13 + addNineteen)
+            {
+                newTrip->visaCardNumber = driverScreenTripLine;
+            }
+            else if (driverScreenTripLineCounter == 14 + addNineteen)
+            {
+                newTrip->cardExpiry = driverScreenTripLine;
+            }
+            else if (driverScreenTripLineCounter == 15 + addNineteen)
+            {
+                newTrip->cardCVC = driverScreenTripLine;
+            }
+            else if (driverScreenTripLineCounter == 16 + addNineteen)
+            {
+                if (driverScreenTripLine == "true")
+                {
+                    newTrip->paymentStatus = true;
+                }
+                else if (driverScreenTripLine == "false")
+                {
+                    newTrip->paymentStatus = false;
+                }
+            }
+            else if (driverScreenTripLineCounter == 17 + addNineteen)
+            {
+                newTrip->cost = stod(driverScreenTripLine);
+            }
+            else if (driverScreenTripLineCounter == 18 + addNineteen)
             {
                 if (driverScreenTripLine == "true")
                 {
@@ -2613,6 +3614,19 @@ void bookedTripsDisplay()
             cout << "\t\tDestination     : " << temporaryTrip->destination << endl;
             cout << "\t\tTrip Date       : " << temporaryTrip->tripDate[0] << "/" << temporaryTrip->tripDate[1] << "/" << temporaryTrip->tripDate[2] << endl;
             cout << "\t\tTrip Time       : " << temporaryTrip->time << endl;
+            cout << "\t\tNo. of People   : " << temporaryTrip->noOfPeople << endl;
+            cout << "\t\tExtra Support   : " << temporaryTrip->extraSupport << endl;
+            cout << "\t\tLuggage Needs   : " << temporaryTrip->luggage << endl;
+            cout << "\t\tPrice           : " << temporaryTrip->cost << endl;
+            cout << "\t\tPayment Status  : ";
+            if (temporaryTrip->paymentStatus == true)
+            {
+                cout << "Paid" << endl;
+            }
+            else if (temporaryTrip->paymentStatus == false)
+            {
+                cout << "Not Yet Paid" << endl;
+            }
             cout << "\t\tAvailability    : ";
             if (temporaryTrip->available == true)
             {
@@ -2789,6 +3803,16 @@ void adminScreen()
     int monthToCheck;
     int yearToCheck;
     int adminChoice;
+    int weeklyNewCustomers = 0;
+    int dailyNewCustomers = 0;
+    int customerRegistrationDay = 0;
+    int customerRegistrationMonth = 0;
+    int customerRegistrationYear = 0;
+    int weeklyCancellations = 0;
+    int dailyCancellations = 0;
+    int cancellationDay = 0;
+    int cancellationMonth = 0;
+    int cancellationYear = 0;
     double totalCustomerPayments = 0;
     double cost = 0;
     bool dayValid = false;
@@ -2896,7 +3920,7 @@ void adminScreen()
 
     /* Check how many claimed trips happened in the past week by looking in the claimed
      * trips file.
-     * Because we deleted any trips older than a week using the cleaningUpTrips() function,
+     * Because we deleted any trips older than a week using the cleaningUpData() function,
      * we just need to check for trips that aren't in the future.
      */
 
@@ -2981,12 +4005,235 @@ void adminScreen()
     // Net income earned by all drivers today:
     cout << "\t\tCombined Net Earnings for Drivers      : " << totalCustomerPayments - (totalCustomerPayments * 0.152) << endl << endl << endl;
 
-    // Weekly Driver Report:
+    // Customer Report:
     cout << "\n\t\t\t|| Customer Report ||" << endl << endl;
+
+    /* Search through the newCustomerData file and count the number of items with today's date,
+     * as well as the total number of items:
+     */
+    newCustomerData.open("newCustomerData.txt", ios::in);
+
+    // Clear the end markers vector so we can use it again:
+    endMarkers.clear();
+
+    // Reset the counter:
+    lineCounter = 0;
+
+    while (getline(newCustomerData, customerLine))
+    {
+        // Count the lines being read:
+        lineCounter++;
+
+        // Look for end markers:
+        if (customerLine == "-----End of item-----")
+        {
+            // Add to the weekly new customers sum:
+            weeklyNewCustomers++;
+
+            // Add the location to the endMarkers vector:
+            endMarkers.push_back(lineCounter);
+        }
+    }
+    // Close the file:
+    newCustomerData.close();
+
+    // Reset the counter as well as the date validations:
+    lineCounter = 0;
+    dayValid = false;
+    monthValid = false;
+    yearValid = false;
+
+    // Open the file again and read each line:
+    newCustomerData.open("newCustomerData.txt", ios::in);
+
+    while (getline(newCustomerData, customerLine))
+    {
+        // Count the lines being read:
+        lineCounter++;
+
+        // Go through the vector of end markers to read each item's info:
+        for (int i = 0; i < endMarkers.size(); i++)
+        {
+            // For every first line:
+            if (lineCounter == (endMarkers[i] - 3))
+            {
+                customerRegistrationDay = stoi(customerLine);
+            }
+            // For every second line:
+            else if (lineCounter == (endMarkers[i] - 2))
+            {
+                customerRegistrationMonth = stoi(customerLine);
+            }
+            // For every third line:
+            else if (lineCounter == (endMarkers[i] - 1))
+            {
+                customerRegistrationYear = stoi(customerLine);
+            }
+            // For every fourth line:
+            else if (lineCounter == endMarkers[i])
+            {
+                // Find out if the date is today, starting with the day:
+                if (customerRegistrationDay == dt->tm_mday)
+                {
+                    dayValid = true;
+                }
+                else
+                {
+                    dayValid = false;
+                }
+                // Then check the month:
+                if (customerRegistrationMonth == dt->tm_mon + 1)
+                {
+                    monthValid = true;
+                }
+                else
+                {
+                    monthValid = false;
+                }
+                // Then check the year:
+                if (customerRegistrationYear == dt->tm_year + 1900)
+                {
+                    yearValid = true;
+                }
+                else
+                {
+                    yearValid = false;
+                }
+                // If all 3 are valid, add to the number of daily customers:
+                if (dayValid == true && monthValid == true && yearValid == true)
+                {
+                    dailyNewCustomers++;
+                }
+            }
+        }
+    }
+    // Close the file, reset the counter and clear the vector:
+    newCustomerData.close();
+    lineCounter = 0;
+    endMarkers.clear();
+
+    // Confirm the number of new customers today:
+    *noOfNewCustomersTodayPtr = dailyNewCustomers;
+
+    // Confirm the number of new customers this week:
+    *noOfNewCustomersThisWeekPtr = weeklyNewCustomers;
+
+    /* Search through the tripCancellations file and count the
+     * number of items with today's date,
+     * as well as the total number of items:
+     */
+    tripCancellations.open("tripCancellations.txt", ios::in);
+
+    // Clear the end markers vector so we can use it again:
+    endMarkers.clear();
+
+    // Reset the counter:
+    lineCounter = 0;
+
+    while (getline(tripCancellations, customerLine))
+    {
+        // Count the lines being read:
+        lineCounter++;
+
+        // Look for end markers:
+        if (customerLine == "-----End of item-----")
+        {
+            // Add to the weekly cancellations sum:
+            weeklyCancellations++;
+
+            // Add the location to the endMarkers vector:
+            endMarkers.push_back(lineCounter);
+        }
+    }
+    // Close the file:
+    tripCancellations.close();
+
+    // Reset the counter as well as the date validations:
+    lineCounter = 0;
+    dayValid = false;
+    monthValid = false;
+    yearValid = false;
+
+    // Open the file again and read each line:
+    tripCancellations.open("tripCancellations.txt", ios::in);
+
+    while (getline(tripCancellations, customerLine))
+    {
+        // Count the lines being read:
+        lineCounter++;
+
+        // Go through the vector of end markers to read each item's info:
+        for (int i = 0; i < endMarkers.size(); i++)
+        {
+            // For every first line:
+            if (lineCounter == (endMarkers[i] - 3))
+            {
+                cancellationDay = stoi(customerLine);
+            }
+            // For every second line:
+            else if (lineCounter == (endMarkers[i] - 2))
+            {
+                cancellationMonth = stoi(customerLine);
+            }
+            // For every third line:
+            else if (lineCounter == (endMarkers[i] - 1))
+            {
+                cancellationYear = stoi(customerLine);
+            }
+            // For every fourth line:
+            else if (lineCounter == endMarkers[i])
+            {
+                // Find out if the date is today, starting with the day:
+                if (cancellationDay == dt->tm_mday)
+                {
+                    dayValid = true;
+                }
+                else
+                {
+                    dayValid = false;
+                }
+                // Then check the month:
+                if (cancellationMonth == dt->tm_mon + 1)
+                {
+                    monthValid = true;
+                }
+                else
+                {
+                    monthValid = false;
+                }
+                // Then check the year:
+                if (cancellationYear == dt->tm_year + 1900)
+                {
+                    yearValid = true;
+                }
+                else
+                {
+                    yearValid = false;
+                }
+                // If all 3 are valid, add to the number of daily cancellations:
+                if (dayValid == true && monthValid == true && yearValid == true)
+                {
+                    dailyCancellations++;
+                }
+            }
+        }
+    }
+    // Close the file, reset the counter and clear the vector:
+    tripCancellations.close();
+    lineCounter = 0;
+    endMarkers.clear();
+
+    // Confirm the number of cancellations today:
+    *noOfCancellationsDailyPtr = dailyCancellations;
+
+    // Confirm the number of cancellations this week:
+    *noOfCancellationsWeeklyPtr = weeklyCancellations;
 
     // Print the number of new customers today and this week:
     cout << "\t\tNumber of New Customers Today          : " << *noOfNewCustomersTodayPtr << endl;
     cout << "\t\tNumber of New Customers This Week      : " << *noOfNewCustomersThisWeekPtr << endl;
+
+    // Print the number of trip cancellations today and this week:
     cout << "\t\tNumber of Trip Cancellations Today     : " << *noOfCancellationsDailyPtr << endl;
     cout << "\t\tNumber of Trip Cancellations This Week : " << *noOfCancellationsWeeklyPtr << endl << endl << endl;
 
@@ -3013,8 +4260,5 @@ void adminScreen()
     }
 }
 
-void cancellations() {
-};
-
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu                                                                                                                
+// Debug program: F5 or Debug > Start Debugging menu
