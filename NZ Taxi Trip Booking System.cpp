@@ -130,16 +130,14 @@ vector<int>displayedTripNumbers;
 
 // Global Variables For Admin LogIn:
 fstream adminData;
-string adminEmailAddress = "admin@nztaxitrip.com";
+string adminEmailAddress;
 string* adminEmailAddressPtr = &adminEmailAddress;
-string adminPassword = "toot-for-taxi";
+string adminPassword;
 string* adminPasswordPtr = &adminPassword;
 string adminLine;
 string* adminLinePtr = &adminLine;
 string adminEmailNotFound;
 string* adminEmailNotFoundPtr = &adminEmailNotFound;
-int adminEmailLine;
-int* adminEmailLinePtr = &adminEmailLine;
 int adminLinesCounter = 1;
 int* adminLinesCounterPtr = &adminLinesCounter;
 int adminLogInAttempts = 0;
@@ -285,8 +283,8 @@ int main()
     adminData.open("adminData.txt", ios::out);
 
     // Write to the file:
-    adminData << *adminEmailAddressPtr << endl;
-    adminData << *adminPasswordPtr << endl;
+    adminData << "admin@nztaxitrip.com" << endl;
+    adminData << "toot-for-taxi" << endl;
     adminData << "-----End of item-----" << endl;
 
     // Close the file:
@@ -2729,42 +2727,42 @@ void tripCancellation()
         counter++;
 
         // For every first line:
-        if (counter == multiplyEight + 1)
+        if (counter == (multiplyEight * 8) + 1)
         {
             deletedClaim->tripNumber = stoi(line);
         }
         // For every second line:
-        else if (counter == multiplyEight + 2)
+        else if (counter == (multiplyEight * 8) + 2)
         {
             deletedClaim->emailAddress = line;
         }
         // For every third line:
-        else if (counter == multiplyEight + 3)
+        else if (counter == (multiplyEight * 8) + 3)
         {
             deletedClaim->day = stoi(line);
         }
         // For every fourth line:
-        else if (counter == multiplyEight + 4)
+        else if (counter == (multiplyEight * 8) + 4)
         {
             deletedClaim->month = stoi(line);
         }
         // For every fifth line:
-        else if (counter == multiplyEight + 5)
+        else if (counter == (multiplyEight * 8) + 5)
         {
             deletedClaim->year = stoi(line);
         }
         // For every sixth line:
-        else if (counter == multiplyEight + 6)
+        else if (counter == (multiplyEight * 8) + 6)
         {
             deletedClaim->time = line;
         }
         // For every seventh line:
-        else if (counter == multiplyEight + 7)
+        else if (counter == (multiplyEight * 8) + 7)
         {
             deletedClaim->cost = stod(line);
         }
         // For every eighth line:
-        else if (counter == multiplyEight + 8)
+        else if (counter == (multiplyEight * 8) + 8)
         {
             // Increase multiplyEight:
             multiplyEight++;
@@ -3288,12 +3286,31 @@ void driverScreen(string myEmail)
     string driverScreenLine;
     Driver loggedInDriver;
     int driverScreenLineCounter = 1;
+    int emailLine = 0;
+    int lineCount = 0;
 
     // Record the email address of the current user:
     loggedInDriver.emailAddress = myEmail;
 
+    // Open the driverData.txt file to retrieve the email line:
+    driverData.open("driverData.txt", ios::in);
+
+    while (getline(driverData, driverScreenLine))
+    {
+        // Count the lines:
+        lineCount++;
+
+        // Look for the email address and record its position:
+        if (driverScreenLine == loggedInDriver.emailAddress)
+        {
+            emailLine = lineCount;
+        }
+    }
+    // Close the file:
+    driverData.close();
+
     // Reset the counter:
-    driverScreenLineCounter = 1;
+    lineCount = 0;
 
     // Open the driverData.txt file to display the payment details:
     driverData.open("driverData.txt", ios::in);
@@ -3304,11 +3321,11 @@ void driverScreen(string myEmail)
     while (getline(driverData, driverScreenLine))
     {
         // Record the bank name:
-        if (driverScreenLineCounter == (*driverEmailLinePtr - 2))
+        if (driverScreenLineCounter == (emailLine - 2))
         {
             loggedInDriver.bankName = driverScreenLine;
         }
-        else if (driverScreenLineCounter == (*driverEmailLinePtr - 1))
+        else if (driverScreenLineCounter == (emailLine - 1))
         {
             loggedInDriver.bankAccountNumber = driverScreenLine;
         }
@@ -3345,7 +3362,7 @@ void driverScreen(string myEmail)
         // Count the lines being read:
         reportLinesCounter++;
 
-        if (activityLine == *driverEmailLogInPtr)
+        if (activityLine == loggedInDriver.emailAddress)
         {
             // Create a new instance for the struct array:
             ClaimedTrips* newTrip = new ClaimedTrips;
@@ -3409,7 +3426,7 @@ void driverScreen(string myEmail)
                 }
             }
             // Now check the cost of each trip (4 lines down from the email address):
-            else if (reportLinesCounter == i->emailLine + 4)
+            else if (reportLinesCounter == i->emailLine + 5)
             {
                 i->cost = stod(activityLine);
             }
@@ -4161,13 +4178,8 @@ void adminLogIn()
     // Search for the email address:
     while (getline(adminData, adminLine))
     {
-        if (adminLine == *adminEmailAddressPtr)
-        {
-            // If you find the email address, record how far down the data file it is:
-            *adminEmailLinePtr = adminLinesCounter;
-        }
-        // The confirmed password is located 1 line down from the email address:
-        else if (*adminEmailLinePtr != NULL && adminLinesCounter == (*adminEmailLinePtr + 1))
+        // The confirmed password is located 1 line down from the email address at line 2:
+        if (*adminEmailAddressPtr == "admin@nztaxitrip.com" && adminLinesCounter == 2)
         {
             // Check if the password entered is incorrect:
             while (*adminPasswordPtr != adminLine)
@@ -4204,9 +4216,9 @@ void adminLogIn()
                 }
             }
             /* Once the password is correct...
-             * Reset the lines being read to zero and close the file:
+             * Reset the lines being read to 1 and close the file:
              */
-            adminLinesCounter = 0;
+            adminLinesCounter = 1;
             adminData.close();
 
             // Tell the user they have successfully logged in, and take them to the Admin Screen:
@@ -4220,8 +4232,8 @@ void adminLogIn()
     // Close the file!
     adminData.close();
 
-    // If, after searching through the whole file, the email address entered is not found:
-    if (*adminEmailLinePtr == NULL)
+    // If the email address is incorrect:
+    if (*adminEmailAddressPtr != "admin@nztaxitrip.com")
     {
         cout << "\n\t\tSorry. That email address was not found." << endl;
         cout << "\t\tDo you want to return to the home screen(type: home)? ";
