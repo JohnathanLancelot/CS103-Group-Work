@@ -94,8 +94,6 @@ string driverLine;
 string* driverLinePtr = &driverLine;
 string driverEmailNotFound;
 string* driverEmailNotFoundPtr = &driverEmailNotFound;
-string newDriverEmail;
-string* newDriverEmailPtr = &newDriverEmail;
 int drivingExperience;
 int* drivingExperiencePtr = &drivingExperience;
 int vehicleAge;
@@ -113,8 +111,6 @@ int* pYearToCheckPtr = &pYearToCheck;
 int driverLogInAttempts = 0;
 bool pLeap;
 bool* pLeapPtr = &pLeap;
-bool driverJustRegistered = false;
-bool* driverJustRegisteredPtr = &driverJustRegistered;
 
 // Global Variables For Driver Screen:
 fstream driverActivityData;
@@ -220,6 +216,7 @@ struct Driver
 // Driver Activity Struct / Claimed Trips:
 struct ClaimedTrips
 {
+    int tripNumber = 0;
     string emailAddress;
     int day = 0;
     int month = 0;
@@ -269,10 +266,11 @@ void customerScreen();
 void priceEstimation();
 void tripBooking();
 void tripCancellation();
+void billScreen(Trips trip, int distance);
 void driverLogIn();
 void driverRegistration();
-void driverScreen();
-void claimTrip();
+void driverScreen(string myEmail);
+void claimTrip(string myEmail);
 void bookedTripsDisplay();
 void adminLogIn();
 void adminScreen();
@@ -694,36 +692,41 @@ void cleanUpData()
         for (int i = 0; i < cleaningEndMarkers.size(); i++)
         {
             // For every first line:
+            if (counts == (cleaningEndMarkers[i] - 7))
+            {
+                cleaningTrips2->tripNumber = stoi(tripLines);
+            }
+            // For every second line:
             if (counts == (cleaningEndMarkers[i] - 6))
             {
                 cleaningTrips2->emailAddress = tripLines;
             }
-            // For every second line:
+            // For every third line:
             else if (counts == (cleaningEndMarkers[i] - 5))
             {
                 cleaningTrips2->day = stoi(tripLines);
             }
-            // For every third line:
+            // For every fourth line:
             else if (counts == (cleaningEndMarkers[i] - 4))
             {
                 cleaningTrips2->month = stoi(tripLines);
             }
-            // For every fourth line:
+            // For every fifth line:
             else if (counts == (cleaningEndMarkers[i] - 3))
             {
                 cleaningTrips2->year = stoi(tripLines);
             }
-            // For every fifth line:
+            // For every sixth line:
             else if (counts == (cleaningEndMarkers[i] - 2))
             {
                 cleaningTrips2->time = tripLines;
             }
-            // For every sixth line:
+            // For every seventh line:
             else if (counts == (cleaningEndMarkers[i] - 1))
             {
                 cleaningTrips2->cost = stod(tripLines);
             }
-            // For every seventh line:
+            // For every eighth line:
             else if (counts == (cleaningEndMarkers[i]))
             {
                 // Add the instance to the vector:
@@ -781,6 +784,7 @@ void cleanUpData()
         // Only print if tooOld is false:
         if (tooOld == false)
         {
+            driverActivityData << cleaningVector2[i].tripNumber << endl;
             driverActivityData << cleaningVector2[i].emailAddress << endl;
             driverActivityData << cleaningVector2[i].day << endl;
             driverActivityData << cleaningVector2[i].month << endl;
@@ -1298,10 +1302,12 @@ void customerLogIn()
         customerLinesCounter++;
     }
 
+    // Close the file!
+    customerData.close();
+
     // If, after searching through the whole file, the email address entered is not found:
     if (*customerEmailLinePtr == NULL)
     {
-        customerData.close();
         cout << "\n\t\tSorry. That email address was not found. Do you want to register (type: register)" << endl;
         cout << "\t\tor return to the home screen (type: home)? ";
         cin >> *customerEmailNotFoundPtr;
@@ -1425,7 +1431,7 @@ void customerRegistration()
     // Tell the system that the user just registered:
     *customerJustRegisteredPtr = true;
 
-    // Grab the email address of this new driver:
+    // Grab the email address of this new customer:
     *newCustomerEmailPtr = newCustomer.emailAddress;
 
     // We also need to find out what line this is on:
@@ -1440,7 +1446,7 @@ void customerRegistration()
         customerScreenLineCounter++;
     }
     // Close the file:
-    driverData.close();
+    customerData.close();
 
     // Reset the counter:
     customerScreenLineCounter = 1;
@@ -1482,8 +1488,6 @@ void customerScreen()
     {
         *customerEmailLogInPtr = *newCustomerEmailPtr;
     }
-    // Then reset the 'just registered' boolean to false:
-    *customerJustRegisteredPtr = false;
 
     // Reset the counter:
     customerScreenLineCounter = 1;
@@ -1528,6 +1532,9 @@ void customerScreen()
     }
     else if (*customerScreenMenuOptionPtr == 4)
     {
+        // Then reset the 'just registered' boolean to false:
+        *customerJustRegisteredPtr = false;
+
         // Go back to the intro screen to log out:
         introFunction();
     }
@@ -1556,6 +1563,9 @@ void customerScreen()
         }
         else if (*customerScreenMenuOptionPtr == 4)
         {
+            // Then reset the 'just registered' boolean to false:
+            *customerJustRegisteredPtr = false;
+
             // Go back to the intro screen to log out:
             introFunction();
         }
@@ -1618,78 +1628,461 @@ void tripBooking()
     // Create a temporary instance:
     Trips newTrip;
 
+    // Local Variables:
+    int counts = 0;
+    int emailLine = 0;
+    int generatedTripNumber = 0;
+    int confirmOrCancel;
+    double distanceTravelled;
+    bool inThePast = false;
+    string line;
+    string oneLine;
+    string bookAnother;
+
+    // Allow us to use time:
+    time_t now = time(0);
+    struct  tm* dt = localtime(&now);
+
+    /* If the customer just registered, we need to access their email
+     * address using the global variable.
+     */
+    if (*customerJustRegisteredPtr == true)
+    {
+        *customerEmailLogInPtr = *newCustomerEmailPtr;
+    }
+
+    // Open the customerData file and read its contents:
+    customerData.open("customerData.txt", ios::in);
+
+    while (getline(customerData, line))
+    {
+        // Count the lines being read:
+        counts++;
+
+        // Look for the currently logged in customer's email address:
+        if (line == *customerEmailLogInPtr)
+        {
+            // Record its position:
+            emailLine = counts;
+        }
+    }
+    // Close the file:
+    customerData.close();
+
+    // Reset the counter:
+    counts = 0;
+
+    // Open the file again, and gather what's needed for trip booking:
+    customerData.open("customerData.txt", ios::in);
+
+    while (getline(customerData, line))
+    {
+        // Count the lines again:
+        counts++;
+
+        // Grab the full name:
+        if (counts == (emailLine - 6))
+        {
+            newTrip.customerName = line;
+        }
+        // Grab the contact number:
+        if (counts == (emailLine - 5))
+        {
+            newTrip.customerContactNumber = line;
+        }
+        // Grab the Visa card number:
+        if (counts == (emailLine - 3))
+        {
+            newTrip.visaCardNumber = line;
+        }
+        // Grab the card expiry date:
+        if (counts == (emailLine - 2))
+        {
+            newTrip.cardExpiry = line;
+        }
+        // Grab the card CVC:
+        if (counts == (emailLine - 1))
+        {
+            newTrip.cardCVC = line;
+        }
+    }
+    // Close the file, before asking the user to fill in the rest:
+    customerData.close();
+
+    // Reset the counter:
+    counts = 0;
+
     // Fix the missed inputs issue:
     cin.ignore();
 
     // Gather input about this trip:
-    cout << "\t\tPlease enter your full name: ";
-    getline(cin, newTrip.customerName);
+    cout << "\t\t\tHello " << newTrip.customerName << "~!" << endl << endl;
+
     cout << "\n\t\tPlease enter your starting location: ";
     getline(cin, newTrip.startingPlace);
-    cout << "\n\t\tPlease enter your destination: ";
+    cout << "\n\t\tPlease enter your desired destination: ";
     getline(cin, newTrip.destination);
+    cout << "\n\t\tPlease enter the distance you will be travelling in kilometers" << endl;
+    cout << "\t\t(please do not include 'km'): ";
+    cin >> distanceTravelled;
+    cout << "\n\t\tPlease enter the date of this trip in the following format... (no inputs starting with 0)" << endl;
+    cout << "\t\tDay   (dd)    : ";
+    cin >> newTrip.tripDate[0];
+    cout << "\t\tMonth (mm)    : ";
+    cin >> newTrip.tripDate[1];
+    cout << "\t\tYear  (yyyy)  : ";
+    cin >> newTrip.tripDate[2];
+
+    // Check if the user is attempting to book a trip in the past, starting with the year:
+    if (newTrip.tripDate[2] < dt->tm_year + 1900)
+    {
+        inThePast = true;
+    }
+    // Check the month:
+    else if (newTrip.tripDate[2] == dt->tm_year + 1900 && newTrip.tripDate[1] < dt->tm_mon + 1)
+    {
+        inThePast = true;
+    }
+    // Check the day:
+    else if (newTrip.tripDate[2] == dt->tm_year + 1900 && newTrip.tripDate[1] == dt->tm_mon + 1 && newTrip.tripDate[0] < dt->tm_mday)
+    {
+        inThePast = true;
+    }
+    else
+    {
+        inThePast = false;
+    }
+    // Make the user re-enter the date if it is in the past:
+    while (inThePast == true)
+    {
+        cout << "\n\t\tSorry! You have tried to enter a date in the past. Please try again." << endl;
+
+        cout << "\n\t\tPlease enter the date of this trip in the following format... (no inputs starting with 0)" << endl;
+        cout << "\t\tDay   (dd)    : ";
+        cin >> newTrip.tripDate[0];
+        cout << "\t\tMonth (mm)    : ";
+        cin >> newTrip.tripDate[1];
+        cout << "\t\tYear  (yyyy)  : ";
+        cin >> newTrip.tripDate[2];
+
+        // Check if the user is attempting to book a trip in the past, starting with the year:
+        if (newTrip.tripDate[2] < dt->tm_year + 1900)
+        {
+            inThePast = true;
+        }
+        // Check the month:
+        else if (newTrip.tripDate[2] == dt->tm_year + 1900 && newTrip.tripDate[1] < dt->tm_mon + 1)
+        {
+            inThePast = true;
+        }
+        // Check the day:
+        else if (newTrip.tripDate[2] == dt->tm_year + 1900 && newTrip.tripDate[1] == dt->tm_mon + 1 && newTrip.tripDate[0] < dt->tm_mday)
+        {
+            inThePast = true;
+        }
+        else
+        {
+            inThePast = false;
+        }
+    }
     cout << "\n\t\tPlease enter the time you want to be picked up: ";
+    cin.ignore();
     getline(cin, newTrip.time);
     cout << "\n\t\tPlease enter the number of people travelling: ";
     cin >> newTrip.noOfPeople;
-    cin.ignore();
     cout << "\n\t\tDo you need any extra support?" << endl;
     cout << "\t\tPlease specify: ";
+    cin.ignore();
     getline(cin, newTrip.extraSupport);
     cout << "\n\t\tDo you have any luggage?" << endl;
     cout << "\t\tPlease specify if it is normal, " << endl;
     cout << "\t\tlarge and / or heavy: ";
     getline(cin, newTrip.luggage);
 
-    // Note for later: Possibly look into obtaining these from what's already on file
-    // in the customerData file from registration, but only after the other stuff is done.
-    cout << "\n\t\tPlease enter your Visa card number: ";
-    getline(cin, newTrip.visaCardNumber);
-    cout << "\n\t\tPlease enter your card's expiry date: ";
-    getline(cin, newTrip.cardExpiry);
-    cout << "\n\t\tPlease enter your card's CVC: ";
-    getline(cin, newTrip.cardCVC);
+    // Set the current payment status:
+    newTrip.paymentStatus = false;
 
-    /* Generate a new trip number.
-     * If there isn't a tripNumberGenerator file yet,
-     * make one, and make the first trip number 0
-     * (it will soon be changed to 1).
-     */
-    tripNumberGenerator.open("tripNumberGenerator.txt", ios::out | ios::_Noreplace);
+    // Confirm the trip's cost:
+    newTrip.cost = *baseFarePtr + (*costPerKmPtr * distanceTravelled);
 
-    tripNumberGenerator << 0;
+    // Generate the bill:
+    billScreen(newTrip, distanceTravelled);
 
-    tripNumberGenerator.close();
+    // Ask the user if they want to confirm payment or cancel:
+    cout << "\n\t\tWould you like to confirm payment (type: 1) or cancel (type: 2)? ";
+    cin >> confirmOrCancel;
 
-    // Read the file, and update its number by adding 1:
-    tripNumberGenerator.open("tripNumberGenerator.txt", ios::in);
-
-    int generatedTripNumber = 0;
-    string oneLine;
-
-    while (getline(tripNumberGenerator, oneLine))
+    // Handle the input:
+    if (confirmOrCancel == 1)
     {
-        generatedTripNumber = stoi(oneLine);
+        /* Generate a new trip number.
+         * If there isn't a tripNumberGenerator file yet,
+         * make one, and make the first trip number 0
+         * (it will soon be changed to 1).
+         */
+        tripNumberGenerator.open("tripNumberGenerator.txt", ios::out | ios::_Noreplace);
+
+        tripNumberGenerator << 0;
+
+        tripNumberGenerator.close();
+
+        // Read the file, and update its number by adding 1:
+        tripNumberGenerator.open("tripNumberGenerator.txt", ios::in);
+
+        while (getline(tripNumberGenerator, oneLine))
+        {
+            generatedTripNumber = stoi(oneLine);
+        }
+        generatedTripNumber++;
+
+        // Close the file:
+        tripNumberGenerator.close();
+
+        // Open the file again in order to rewrite it with its new number:
+        tripNumberGenerator.open("tripNumberGenerator.txt", ios::out);
+
+        tripNumberGenerator << generatedTripNumber;
+
+        // Close the file:
+        tripNumberGenerator.close();
+
+        // Update the current struct instance:
+        newTrip.tripNumber = generatedTripNumber;
+
+        // Thank the user for confirming payment:
+        cout << "\n\t\tThank you for confirming payment, enjoy your trip~!!!" << endl << endl;
+
+        // Update the payment status:
+        newTrip.paymentStatus = true;
+
+        // Show the bill again and that it is paid:
+        billScreen(newTrip, distanceTravelled);
+
+        // Write to the tripData file:
+        tripData.open("tripData.txt", ios::out | ios::app);
+
+        tripData << newTrip.tripNumber << endl;
+        tripData << newTrip.customerName << endl;
+        tripData << newTrip.customerContactNumber << endl;
+        tripData << newTrip.startingPlace << endl;
+        tripData << newTrip.destination << endl;
+        tripData << newTrip.tripDate[0] << endl;
+        tripData << newTrip.tripDate[1] << endl;
+        tripData << newTrip.tripDate[2] << endl;
+        tripData << newTrip.time << endl;
+        tripData << newTrip.noOfPeople << endl;
+        tripData << newTrip.extraSupport << endl;
+        tripData << newTrip.luggage << endl;
+        tripData << newTrip.visaCardNumber << endl;
+        tripData << newTrip.cardExpiry << endl;
+        tripData << newTrip.cardCVC << endl;
+        if (newTrip.paymentStatus == true)
+        {
+            tripData << "true" << endl;
+        }
+        else if (newTrip.paymentStatus == false)
+        {
+            tripData << "false" << endl;
+        }
+        tripData << newTrip.cost << endl;
+        if (newTrip.available == true)
+        {
+            tripData << "true" << endl;
+        }
+        else if (newTrip.available == false)
+        {
+            tripData << "false" << endl;
+        }
+        tripData << "-----End of item-----" << endl;
+
+        // Close the file:
+        tripData.close();
     }
-    generatedTripNumber++;
+    else if (confirmOrCancel == 2)
+    {
+        cout << "\n\t\tTrip Cancelled." << endl << endl;
 
-    // Close the file:
-    tripNumberGenerator.close();
+        // Send the user back to the customer screen:
+        customerScreen();
+    }
+    else
+    {
+        // Deal with invalid inputs:
+        while (confirmOrCancel != 1 && confirmOrCancel != 2)
+        {
+            cout << "\n\t\tSorry! Invalid input. Please type 1 or 2: ";
+            cin >> confirmOrCancel;
+        }
+        // Once the input is valid, act on it:
+        if (confirmOrCancel == 1)
+        {
+            /* Generate a new trip number.
+             * If there isn't a tripNumberGenerator file yet,
+             * make one, and make the first trip number 0
+             * (it will soon be changed to 1).
+             */
+            tripNumberGenerator.open("tripNumberGenerator.txt", ios::out | ios::_Noreplace);
 
-    // Open the file again in order to rewrite it with its new number:
-    tripNumberGenerator.open("tripNumberGenerator.txt", ios::out);
+            tripNumberGenerator << 0;
 
-    tripNumberGenerator << generatedTripNumber;
+            tripNumberGenerator.close();
 
-    // Close the file:
-    tripNumberGenerator.close();
+            // Read the file, and update its number by adding 1:
+            tripNumberGenerator.open("tripNumberGenerator.txt", ios::in);
 
-    // Update the current struct instance:
-    newTrip.tripNumber = generatedTripNumber;
+            while (getline(tripNumberGenerator, oneLine))
+            {
+                generatedTripNumber = stoi(oneLine);
+            }
+            generatedTripNumber++;
 
-    // Write to the tripData file [WRITING TO TRIPDATA GOES HERE]:
+            // Close the file:
+            tripNumberGenerator.close();
 
-    // Other stuff...
+            // Open the file again in order to rewrite it with its new number:
+            tripNumberGenerator.open("tripNumberGenerator.txt", ios::out);
+
+            tripNumberGenerator << generatedTripNumber;
+
+            // Close the file:
+            tripNumberGenerator.close();
+
+            // Update the current struct instance:
+            newTrip.tripNumber = generatedTripNumber;
+
+            // Thank the user for confirming payment:
+            cout << "\n\t\tThank you for confirming payment, enjoy your trip~!!!" << endl << endl;
+
+            // Update the payment status:
+            newTrip.paymentStatus = true;
+
+            // Show the bill again and that it is paid:
+            billScreen(newTrip, distanceTravelled);
+
+            // Write to the tripData file:
+            tripData.open("tripData.txt", ios::out | ios::app);
+
+            tripData << newTrip.tripNumber << endl;
+            tripData << newTrip.customerName << endl;
+            tripData << newTrip.customerContactNumber << endl;
+            tripData << newTrip.startingPlace << endl;
+            tripData << newTrip.destination << endl;
+            tripData << newTrip.tripDate[0] << endl;
+            tripData << newTrip.tripDate[1] << endl;
+            tripData << newTrip.tripDate[2] << endl;
+            tripData << newTrip.time << endl;
+            tripData << newTrip.noOfPeople << endl;
+            tripData << newTrip.extraSupport << endl;
+            tripData << newTrip.luggage << endl;
+            tripData << newTrip.visaCardNumber << endl;
+            tripData << newTrip.cardExpiry << endl;
+            tripData << newTrip.cardCVC << endl;
+            if (newTrip.paymentStatus == true)
+            {
+                tripData << "true" << endl;
+            }
+            else if (newTrip.paymentStatus == false)
+            {
+                tripData << "false" << endl;
+            }
+            tripData << newTrip.cost << endl;
+            if (newTrip.available == true)
+            {
+                tripData << "true" << endl;
+            }
+            else if (newTrip.available == false)
+            {
+                tripData << "false" << endl;
+            }
+            tripData << "-----End of item-----" << endl;
+
+            // Close the file:
+            tripData.close();
+        }
+        else if (confirmOrCancel == 2)
+        {
+            cout << "\n\t\tTrip Cancelled." << endl << endl;
+
+            // Send the user back to the customer screen:
+            customerScreen();
+        }
+    }
+    // Preventing missed inputs:
+    cin.ignore();
+
+    // Ask the user if they want to book another trip:
+    cout << "\n\t\tDo you want to book another trip? y / n: ";
+    getline(cin, bookAnother);
+
+    // Act on the input:
+    if (bookAnother == "y")
+    {
+        tripBooking();
+    }
+    else if (bookAnother == "n")
+    {
+        // Back to the customer screen:
+        customerScreen();
+    }
+    else
+    {
+        // Handle invalid inputs:
+        while (bookAnother != "y" && bookAnother != "n")
+        {
+            cout << "\n\t\tSorry! Invalid input. Please type y or n: ";
+            getline(cin, bookAnother);
+        }
+        // Once valid...
+        if (bookAnother == "y")
+        {
+            tripBooking();
+        }
+        else if (bookAnother == "n")
+        {
+            // Back to the customer screen:
+            customerScreen();
+        }
+    }
+}
+
+void billScreen(Trips trip, int distance)
+{
+    // Heading Image:
+    cout << "\n\n\t\t___________________________________________________" << endl << endl;
+    cout << "\t\t---------------------------------------------------" << endl;
+    cout << "\t\t___________________________________________________" << endl << endl;
+
+    cout << "\n\t\t\tBill For " << trip.customerName << endl << endl << endl;
+
+    // Trip Details:
+    cout << "\t\t\t|| Trip Details ||" << endl << endl;
+    cout << "\t\tTrip Date       : " << trip.tripDate[0] << "/" << trip.tripDate[1] << "/" << trip.tripDate[2] << endl;
+    cout << "\t\tTrip Time       : " << trip.time << endl;
+    cout << "\t\tStarting Place  : " << trip.startingPlace << endl;
+    cout << "\t\tDestination     : " << trip.destination << endl << endl << endl << endl;
+
+    // Bill Breakdown:
+    cout << "\t\t\t|| Bill Breakdown ||" << endl << endl;
+    cout << "\t\tBase Fare       : $" << *baseFarePtr << endl;
+    cout << "\t\tCost Per Km     : $" << *costPerKmPtr << endl;
+    cout << "\t\tTravel Distance :  " << distance << endl;
+    cout << "\t\tTotal Cost      : $" << trip.cost << endl << endl;
+    cout << "\t\tPayment Status  : ";
+
+    // Check the payment status and display it:
+    if (trip.paymentStatus == true)
+    {
+        cout << "Paid" << endl << endl;
+    }
+    else if (trip.paymentStatus == false)
+    {
+        cout << "Pending Payment" << endl << endl;
+    }
+
+    // ASCII Road:
+    cout << "\t\t___________________________________________________" << endl << endl;
+    cout << "\t\t---------------------------------------------------" << endl;
+    cout << "\t\t___________________________________________________" << endl << endl;
 }
 
 void tripCancellation()
@@ -1707,18 +2100,19 @@ void tripCancellation()
     int* emailLineForCancellationPtr = &emailLineForCancellation;
     int tripFoundIndex = 0;
     int multiplyNineteen = 0;
+    int multiplyEight = 0;
     bool tripFound = false;
-    bool dayValid = true;
-    bool monthValid = true;
-    bool yearValid = true;
+    bool dateValid;
     string line;
     string fullName;
     string tripNotFoundOption;
     string tripInPastOption;
     string cancelAnother;
+    string noneToCancel;
     vector<int>fullNameLines;
     vector<Trips>preCancellationVector;
     vector<Trips>wholeFileVector;
+    vector<ClaimedTrips>wholeFileVector2;
 
     // Allow us to use time:
     time_t now = time(0);
@@ -1789,6 +2183,18 @@ void tripCancellation()
 
     // Reset line counter:
     counter = 0;
+
+    // If the full name was not found, tell the user this and send them back:
+    if (fullNameLines.size() == 0)
+    {
+        cout << "\n\t\tIt looks like you have no trips to cancel!" << endl << endl;
+
+        cout << "\t\tEnter any key to continue... ";
+        getline(cin, noneToCancel);
+
+        // Send the user back to their Customer Screen:
+        customerScreen();
+    }
 
     // Create a temporary instance of the Trips structure:
     Trips *newTrip = new Trips;
@@ -2029,21 +2435,27 @@ void tripCancellation()
      */
     if (preCancellationVector[tripFoundIndex].tripDate[2] < (dt->tm_year + 1900))
     {
-        yearValid = false;
+        dateValid = false;
     }
     // Check the month:
-    else if (preCancellationVector[tripFoundIndex].tripDate[1] < (dt->tm_mon + 1))
+    else if (preCancellationVector[tripFoundIndex].tripDate[2] == (dt->tm_year + 1900) && 
+             preCancellationVector[tripFoundIndex].tripDate[1] < (dt->tm_mon + 1))
     {
-        monthValid = false;
+        dateValid = false;
     }
     // Check the day:
-    else if (preCancellationVector[tripFoundIndex].tripDate[0] < (dt->tm_mday))
+    else if (preCancellationVector[tripFoundIndex].tripDate[2] == (dt->tm_year + 1900) &&
+             preCancellationVector[tripFoundIndex].tripDate[1] == (dt->tm_mon + 1) &&
+             preCancellationVector[tripFoundIndex].tripDate[0] < (dt->tm_mday))
     {
-        dayValid = false;
+        dateValid = false;
     }
-
-    // Only if all 3 are valid, past is false:
-    if (yearValid == true && monthValid == true && dayValid == true)
+    else
+    {
+        dateValid = true;
+    }
+    // If the date is valid, past is false:
+    if (dateValid == true)
     {
         preCancellationVector[tripFoundIndex].past = false;
     }
@@ -2304,6 +2716,108 @@ void tripCancellation()
     // Close the file:
     tripData.close();
 
+    // Also delete this trip in the driverActivityData file:
+    driverActivityData.open("driverActivityData.txt", ios::in);
+
+    // Create a new instance of the claimed trips structure:
+    ClaimedTrips* deletedClaim = new ClaimedTrips;
+
+    // First, store every line in a vector:
+    while (getline(driverActivityData, line))
+    {
+        // Count the lines:
+        counter++;
+
+        // For every first line:
+        if (counter == multiplyEight + 1)
+        {
+            deletedClaim->tripNumber = stoi(line);
+        }
+        // For every second line:
+        else if (counter == multiplyEight + 2)
+        {
+            deletedClaim->emailAddress = line;
+        }
+        // For every third line:
+        else if (counter == multiplyEight + 3)
+        {
+            deletedClaim->day = stoi(line);
+        }
+        // For every fourth line:
+        else if (counter == multiplyEight + 4)
+        {
+            deletedClaim->month = stoi(line);
+        }
+        // For every fifth line:
+        else if (counter == multiplyEight + 5)
+        {
+            deletedClaim->year = stoi(line);
+        }
+        // For every sixth line:
+        else if (counter == multiplyEight + 6)
+        {
+            deletedClaim->time = line;
+        }
+        // For every seventh line:
+        else if (counter == multiplyEight + 7)
+        {
+            deletedClaim->cost = stod(line);
+        }
+        // For every eighth line:
+        else if (counter == multiplyEight + 8)
+        {
+            // Increase multiplyEight:
+            multiplyEight++;
+
+            // Add the instance to the vector:
+            wholeFileVector2.push_back(*deletedClaim);
+
+            // Create a new instance:
+            ClaimedTrips* deletedClaim = new ClaimedTrips;
+        }
+    }
+    // Close the file:
+    driverActivityData.close();
+
+    // Add the last instance to the vector:
+    wholeFileVector2.push_back(*deletedClaim);
+
+    // Then remove it:
+    wholeFileVector2.pop_back();
+
+    // Now re-print the driverActivityData file:
+    driverActivityData.open("driverActivityData.txt", ios::out);
+
+    for (int i = 0; i < wholeFileVector2.size(); i++)
+    {
+        // Skip printing if the trip number is the one to be deleted:
+        if (wholeFileVector2[i].tripNumber == *tripToCancelPtr)
+        {
+            continue;
+        }
+        else
+        {
+            driverActivityData << wholeFileVector2[i].tripNumber << endl;
+            driverActivityData << wholeFileVector2[i].emailAddress << endl;
+            driverActivityData << wholeFileVector2[i].day << endl;
+            driverActivityData << wholeFileVector2[i].month << endl;
+            driverActivityData << wholeFileVector2[i].year << endl;
+            driverActivityData << wholeFileVector2[i].time << endl;
+            driverActivityData << wholeFileVector2[i].cost << endl;
+            driverActivityData << "-----End of item-----" << endl;
+        }
+    }
+    // Close the file:
+    driverActivityData.close();
+
+    // Reset the two counters:
+    counter = 0;
+    multiplyEight = 0;
+
+    // Clear the vector and delete spare instances:
+    wholeFileVector2.clear();
+    delete deletedClaim;
+
     // Record this cancellation in the tripCancellations file:
     tripCancellations.open("tripCancellations.txt", ios::out | ios::app);
 
@@ -2444,15 +2958,17 @@ void driverLogIn()
 
             // Tell the user they have successfully logged in, and take them to the Driver Screen:
             cout << "\n\n\t\tLog in successful!" << endl;
-            driverScreen();
+            driverScreen(*driverEmailLogInPtr);
         }
         // Count the lines being read:
         driverLinesCounter++;
     }
+    // Close the file:
+    driverData.close();
+
     // If, after searching through the whole file, the email address entered is not found:
     if (*driverEmailLinePtr == NULL)
     {
-        driverData.close();
         cout << "\n\t\tSorry. That email address was not found. Do you want to register (type: register)" << endl;
         cout << "\t\tor return to the home screen (type: home)? ";
         cin >> *driverEmailNotFoundPtr;
@@ -2707,14 +3223,8 @@ void driverRegistration()
                     // Close the file:
                     driverData.close();
 
-                    // Tell the system that the user just registered:
-                    *driverJustRegisteredPtr = true;
-
-                    // Grab the email address of this new driver:
-                    *newDriverEmailPtr = newDriver.emailAddress;
-
                     // Take the user to the driver screen after registering:
-                    driverScreen();
+                    driverScreen(newDriver.emailAddress);
                 }
                 else
                 {
@@ -2750,7 +3260,7 @@ void driverRegistration()
 }
 
 // Driver Logged In Screen Function:
-void driverScreen()
+void driverScreen(string myEmail)
 {
     /* Header Section:
      * Taxi modified from a car ASCII image "MACHO 2020" by The Animator on animasci.com
@@ -2779,29 +3289,8 @@ void driverScreen()
     Driver loggedInDriver;
     int driverScreenLineCounter = 1;
 
-    /* If the driver just registered, we need to access their email
-     * address using the global variable.
-     */
-    if (*driverJustRegisteredPtr == true)
-    {
-        loggedInDriver.emailAddress = *newDriverEmailPtr;
-
-        // We also need to find out what line this is on:
-        driverData.open("driverData.txt", ios::in);
-
-        while (getline(driverData, driverScreenLine))
-        {
-            if (driverScreenLine == *newDriverEmailPtr)
-            {
-                *driverEmailLinePtr = driverScreenLineCounter;
-            }
-            driverScreenLineCounter++;
-        }
-        // Close the file:
-        driverData.close();
-    }
-    // Then reset the 'just registered' boolean to false:
-    *driverJustRegisteredPtr = false;
+    // Record the email address of the current user:
+    loggedInDriver.emailAddress = myEmail;
 
     // Reset the counter:
     driverScreenLineCounter = 1;
@@ -2829,12 +3318,12 @@ void driverScreen()
     // Close the file and print out the payment details:
     driverData.close();
     cout << "\t\tBank Name: " << loggedInDriver.bankName << endl;
-    cout << "\t\tBank Account Number: " << loggedInDriver.bankAccountNumber << endl << endl;
+    cout << "\t\tBank Account Number: " << loggedInDriver.bankAccountNumber << endl;
 
     bookedTripsDisplay();
 
     // Report Section:
-    cout << "\n\t\t\t|| Daily Report ||" << endl << endl;
+    cout << "\n\n\t\t\t|| Daily Report ||" << endl << endl;
 
     time_t now = time(0);
     struct  tm* dt = localtime(&now);
@@ -2960,7 +3449,7 @@ void driverScreen()
     if (claimOrLogOut == 1)
     {
         // Claim a trip:
-        claimTrip();
+        claimTrip(loggedInDriver.emailAddress);
     }
     else if (claimOrLogOut == 2)
     {
@@ -2984,7 +3473,7 @@ void driverScreen()
         if (claimOrLogOut == 1)
         {
             // Claim a trip:
-            claimTrip();
+            claimTrip(loggedInDriver.emailAddress);
         }
         else if (claimOrLogOut == 2)
         {
@@ -3000,7 +3489,7 @@ void driverScreen()
 }
 
 // Claim Trip Function:
-void claimTrip()
+void claimTrip(string myEmail)
 {
     // Local Variables:
     string yesOrNo;
@@ -3008,6 +3497,8 @@ void claimTrip()
     string tripLine;
     int lineCount = 0;
     int counting = 0;
+    int multiplyNineteen = 0;
+    int toClaimLocation = 0;
     bool tripFound = false;
     vector<string>addClaim;
     vector<string>trips;
@@ -3031,41 +3522,78 @@ void claimTrip()
         // Then the trip exists, and we now have to read it to see if it's available:
         tripData.open("tripData.txt", ios::in);
 
-        /* (*tripToClaimPtr * 19) gets us to the end of the section / trip we are looking
-         * for, so (*tripToClaimPtr * 19) - 1 will give us the position of the availability,
-         * which is one line up from the end marker.
-         *
-         * We're also looking for the date and the cost----to be used in adding this trip to the
-         * claimed trips file (driverActivityData) if it isn't already there.
+        /* We're looking for the availability, date, time, trip number and the cost----to be used in 
+         * adding this trip to the claimed trips file (driverActivityData) if it isn't already there.
          */
         while (getline(tripData, tripLine))
         {
             counting++;
 
-            if (counting == ((*tripToClaimPtr * 19) - 1))
+            // First, let's find the position of the trip number we want:
+            if (counting == (multiplyNineteen * 19) + 1)
+            {
+                if (stoi(tripLine) == *tripToClaimPtr)
+                {
+                    // Record the position:
+                    toClaimLocation = counting;
+                }
+            }
+            else if (counting == (multiplyNineteen * 19) + 19)
+            {
+                // Increase the multiplication counter to get to the next item:
+                multiplyNineteen++;
+            }
+        }
+        // Close the file and reset the counters:
+        tripData.close();
+        counting = 0;
+        multiplyNineteen = 0;
+
+        // Re-open the file and grab the things we need:
+        tripData.open("tripData.txt", ios::in);
+
+        while (getline(tripData, tripLine))
+        {
+            // Count the lines:
+            counting++;
+
+            // Find the availability:
+            if (counting == (toClaimLocation + 17))
             {
                 availability = tripLine;
             }
+            // Store the trip number:
+            else if (counting == (toClaimLocation))
+            {
+                addClaim.push_back(tripLine);
+            }
+            // Store the email address:
+            else if (counting == (toClaimLocation + 1))
+            {
+                addClaim.push_back(myEmail);
+            }
             // Store the date in the addClaim vector, starting with the day:
-            else if (counting == ((*tripToClaimPtr * 19) - 13))
+            else if (counting == (toClaimLocation + 5))
             {
                 addClaim.push_back(tripLine);
             }
-            else if (counting == ((*tripToClaimPtr * 19) - 12))
+            // Month:
+            else if (counting == (toClaimLocation + 6))
             {
                 addClaim.push_back(tripLine);
             }
-            else if (counting == ((*tripToClaimPtr * 19) - 11))
+            // Year:
+            else if (counting == (toClaimLocation + 7))
             {
                 addClaim.push_back(tripLine);
             }
             // Store the time:
-            else if (counting == ((*tripToClaimPtr * 19) - 10))
+            else if (counting == (toClaimLocation + 8))
             {
                 addClaim.push_back(tripLine);
             }
             // Store the cost:
-            else if (counting == ((*tripToClaimPtr * 19) - 2))
+            else if (counting == (toClaimLocation + 16))
             {
                 addClaim.push_back(tripLine);
             }
@@ -3082,10 +3610,7 @@ void claimTrip()
             // Store the claimed trip in the driverActivityData file:
             driverActivityData.open("driverActivityData.txt", ios::out | ios::app);
 
-            // Add the currently logged in driver's email address:
-            driverActivityData << *driverEmailLogInPtr << endl;
-
-            // Add the date and cost from the addClaim vector:
+            // Add everything from the addClaim vector:
             for (int i = 0; i < addClaim.size(); i++)
             {
                 driverActivityData << addClaim[i] << endl;
@@ -3125,7 +3650,7 @@ void claimTrip()
                  * line containing the availability of the trip we just claimed.
                  * This has to be changed to false to show it has been taken.
                  */
-                if (counting == ((*tripToClaimPtr * 19) - 1))
+                if (counting == (toClaimLocation + 17))
                 {
                     tripData << "false" << endl;
                     trips[i] = "false";
@@ -3151,12 +3676,12 @@ void claimTrip()
 
             if (yesOrNo == "y")
             {
-                claimTrip();
+                claimTrip(myEmail);
             }
             else if (yesOrNo == "n")
             {
                 // Back to the driver screen:
-                driverScreen();
+                driverScreen(myEmail);
             }
             else
             {
@@ -3169,11 +3694,11 @@ void claimTrip()
                 // When valid, check the input again:
                 if (yesOrNo == "y")
                 {
-                    claimTrip();
+                    claimTrip(myEmail);
                 }
                 else if (yesOrNo == "n")
                 {
-                    driverScreen();
+                    driverScreen(myEmail);
                 }
             }
         }
@@ -3188,12 +3713,12 @@ void claimTrip()
 
             if (yesOrNo == "y")
             {
-                claimTrip();
+                claimTrip(myEmail);
             }
             else if (yesOrNo == "n")
             {
                 // Back to the driver screen:
-                driverScreen();
+                driverScreen(myEmail);
             }
             else
             {
@@ -3206,11 +3731,11 @@ void claimTrip()
                 // When valid, check the input again:
                 if (yesOrNo == "y")
                 {
-                    claimTrip();
+                    claimTrip(myEmail);
                 }
                 else if (yesOrNo == "n")
                 {
-                    driverScreen();
+                    driverScreen(myEmail);
                 }
             }
         }
@@ -3223,12 +3748,12 @@ void claimTrip()
 
         if (yesOrNo == "y")
         {
-            claimTrip();
+            claimTrip(myEmail);
         }
         else if (yesOrNo == "n")
         {
             // Back to the driver screen:
-            driverScreen();
+            driverScreen(myEmail);
         }
         else
         {
@@ -3241,11 +3766,11 @@ void claimTrip()
             // When valid, check the input again:
             if (yesOrNo == "y")
             {
-                claimTrip();
+                claimTrip(myEmail);
             }
             else if (yesOrNo == "n")
             {
-                driverScreen();
+                driverScreen(myEmail);
             }
         }
     }
@@ -3692,10 +4217,12 @@ void adminLogIn()
         // Count the lines being read:
         adminLinesCounter++;
     }
+    // Close the file!
+    adminData.close();
+
     // If, after searching through the whole file, the email address entered is not found:
     if (*adminEmailLinePtr == NULL)
     {
-        adminData.close();
         cout << "\n\t\tSorry. That email address was not found." << endl;
         cout << "\t\tDo you want to return to the home screen(type: home)? ";
         cin >> *adminEmailNotFoundPtr;

@@ -1,14 +1,24 @@
+2
 adrima@gmail.com
-19
-11
+12
+12
 2021
-10.30
-13
+12
+580.7
 -----End of item-----
+3
 adrima@gmail.com
-18
-11
+22
+12
 2021
-10.30
-13
+12
+60.7
+-----End of item-----
+5
+adrima@gmail.com
+22
+12
+2021
+12
+60.7
 -----End of item-----
